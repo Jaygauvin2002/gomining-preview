@@ -348,115 +348,109 @@
     <div id="app-root" style="display:none;">
     <div class="app-layout">
 
-    <!-- Sidebar -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-logo">
-            <div class="sidebar-logo-inner">
-                <div class="sidebar-logo-badge">
-                    <img src="icon.png" alt="Logo">
-                </div>
-                <div>
-                    <h1>GMSim</h1>
-                    <p data-i18n="nav_subtitle">GoMining NFT Simulator</p>
-                </div>
+    <!-- Top Nav (horizontal, replaces sidebar) -->
+    <nav class="top-nav" id="top-nav">
+        <!-- Brand: logo + GMSim title -->
+        <div class="top-nav-brand">
+            <div class="top-nav-badge"><img src="icon.png" alt="Logo"></div>
+            <div class="top-nav-title">
+                <h1>GMSim</h1>
+                <p data-i18n="nav_subtitle">GoMining NFT Simulator</p>
             </div>
         </div>
-        <nav class="sidebar-nav">
-            <div class="nav-section-label">Main</div>
+
+        <!-- Tabs (preserves all data-tab + onclick handlers) -->
+        <div class="top-nav-tabs">
             <div class="nav-item active" data-tab="dashboard" onclick="switchTab('dashboard')">
                 <span class="nav-icon">📊</span> <span data-i18n="nav_dashboard">Dashboard</span>
-                <span class="nav-dot"></span>
             </div>
             <div class="nav-item" data-tab="mining" onclick="switchTab('mining')">
                 <span class="nav-icon">⛏</span> <span data-i18n="nav_simulator">Simulator</span>
-                <span class="nav-dot"></span>
             </div>
             <div class="nav-item" data-tab="scenarios" onclick="switchTab('scenarios')">
-                <span class="nav-icon">📈</span> <span data-i18n="nav_scenarios">BTC Scenarios</span>
-                <span class="nav-dot"></span>
+                <span class="nav-icon">📈</span> <span data-i18n="nav_scenarios">Scenarios</span>
             </div>
             <div class="nav-item" data-tab="strategy" onclick="switchTab('strategy')" id="nav-strategy">
                 <span class="nav-icon">🧪</span> <span data-i18n="nav_strategy">Strategy Lab</span>
-                <span class="nav-dot"></span>
             </div>
-            <!-- WIP: hidden from users until released — code remains intact in this file and in tab-content divs below -->
+            <div class="nav-item" data-tab="portfolio" onclick="switchTab('portfolio')">
+                <span class="nav-icon">💰</span> <span data-i18n="nav_portfolio">Portfolio</span>
+            </div>
+            <!-- WIP tabs (kept hidden, preserved for activation later) -->
             <div class="nav-item" data-tab="reinvest" onclick="switchTab('reinvest')" style="display:none;">
                 <span class="nav-icon">🔄</span> <span data-i18n="nav_reinvest">Reinvestment</span>
-                <span class="nav-dot"></span>
             </div>
             <div class="nav-item" data-tab="compare" onclick="switchTab('compare')" style="display:none;">
                 <span class="nav-icon">⚖</span> <span data-i18n="nav_compare">Compare</span>
-                <span class="nav-dot"></span>
             </div>
             <div class="nav-item" data-tab="multisim" onclick="switchTab('multisim')" style="display:none;">
                 <span class="nav-icon">🎛</span> <span data-i18n="nav_simulation">Simulation</span>
-                <span class="nav-dot"></span>
             </div>
             <div class="nav-item" data-tab="performance" onclick="switchTab('performance')" style="display:none;">
                 <span class="nav-icon">📉</span> <span data-i18n="nav_performance">Performance</span>
-                <span class="nav-dot"></span>
             </div>
             <div class="nav-item" data-tab="alerts" onclick="switchTab('alerts')" style="display:none;">
                 <span class="nav-icon">🔔</span> <span data-i18n="nav_alerts">Alerts</span>
-                <span class="nav-dot"></span>
-            </div>
-            <!-- END WIP -->
-            <div class="nav-section-label">Account</div>
-
-            <div class="nav-item" data-tab="portfolio" onclick="switchTab('portfolio')">
-                <span class="nav-icon">💰</span> <span data-i18n="nav_portfolio">Portfolio</span>
-                <span class="nav-dot"></span>
-            </div>
-        </nav>
-        <div class="sidebar-footer">
-            <!-- Google sign-in widget (rendered by auth.js) -->
-            <div id="auth-widget" style="margin-bottom:10px;"></div>
-
-            <div class="lang-toggle">
-                <button class="lang-btn active" data-lang="en" onclick="setLang('en')">EN</button>
-                <button class="lang-btn" data-lang="fr" onclick="setLang('fr')">FR</button>
-            </div>
-            <div style="display:flex;gap:8px;margin-bottom:8px;">
-                <button class="refresh-btn" style="flex:1;justify-content:center;" onclick="fetchLiveData()">
-                    &#x21bb; <span data-i18n="refresh">Refresh</span>
-                </button>
-                <button class="refresh-btn" style="justify-content:center;padding:8px 12px;" onclick="toggleTheme()" title="Theme" id="theme-btn">
-                    ☀
-                </button>
-            </div>
-            <button class="refresh-btn" style="width:100%;justify-content:center;font-size:0.72em;margin-bottom:8px;" onclick="showExtensionGuide()" data-i18n="sidebar_guide">Extension Guide</button>
-            <div style="display:flex;gap:6px;margin-bottom:8px;">
-                <button class="refresh-btn" style="flex:1;justify-content:center;font-size:0.72em;padding:5px 8px;" onclick="exportAllData()">↓ <span data-i18n="btn_export">Export</span></button>
-                <button class="refresh-btn" style="flex:1;justify-content:center;font-size:0.72em;padding:5px 8px;" onclick="document.getElementById('import-file').click()">↑ <span data-i18n="btn_import">Import</span></button>
-                <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importAllData(event)">
-            </div>
-            <div class="sync-status" id="sync-status">
-                <div class="sync-dot" id="sync-dot"></div>
-                <span id="sync-label">--</span>
-            </div>
-            <div class="last-update" id="last-update" style="margin-top:6px;text-align:left;"></div>
-
-            <!-- Support / donate button -->
-            <a href="support.html"
-               style="display:flex;align-items:center;justify-content:center;gap:6px;
-                      margin-top:14px;padding:9px;background:rgba(255,107,157,0.08);
-                      border:1px solid rgba(255,107,157,0.3);border-radius:8px;
-                      color:#ff6b9d;text-decoration:none;font-size:0.78em;font-weight:600;
-                      transition:all .15s;"
-               onmouseover="this.style.background='rgba(255,107,157,0.15)'"
-               onmouseout="this.style.background='rgba(255,107,157,0.08)'">
-                <span>❤</span> Support us
-            </a>
-
-            <!-- Legal links -->
-            <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);
-                        text-align:center;font-size:0.66em;color:var(--text-dim);line-height:1.6;">
-                <a href="about.html" style="color:var(--text-dim);text-decoration:none;margin:0 4px;">About</a> ·
-                <a href="privacy.html" style="color:var(--text-dim);text-decoration:none;margin:0 4px;">Privacy</a> ·
-                <a href="terms.html" style="color:var(--text-dim);text-decoration:none;margin:0 4px;">Terms</a>
             </div>
         </div>
-    </aside>
+
+        <!-- Right cluster: status pill + Connect Extension + ⋯ menu + auth -->
+        <div class="top-nav-right">
+            <!-- Connection Pulse (sync status pill, like the mockup) -->
+            <div class="sync-status" id="sync-status">
+                <div class="sync-dot" id="sync-dot"></div>
+                <span id="sync-label" data-i18n="connection_pulse">Connection Pulse</span>
+            </div>
+
+            <!-- Connect Extension button (like the mockup) -->
+            <button class="top-nav-cta" onclick="showExtensionGuide()" data-i18n="connect_extension">Connect Extension</button>
+
+            <!-- Overflow menu: Refresh / Theme / Lang / Export / Import / Guide / Support -->
+            <div class="top-nav-menu-wrap">
+                <button class="top-nav-menu-btn" onclick="document.getElementById('top-nav-menu').classList.toggle('open')" aria-label="More options" title="More">⋯</button>
+                <div class="top-nav-menu" id="top-nav-menu">
+                    <div class="tnm-section">
+                        <button class="tnm-item" onclick="fetchLiveData();document.getElementById('top-nav-menu').classList.remove('open');">
+                            <span class="tnm-ico">↻</span> <span data-i18n="refresh">Refresh data</span>
+                        </button>
+                        <button class="tnm-item" onclick="toggleTheme();" id="theme-btn">
+                            <span class="tnm-ico">☀</span> <span data-i18n="theme">Theme</span>
+                        </button>
+                    </div>
+                    <div class="tnm-section tnm-langs">
+                        <span class="tnm-section-label" data-i18n="language">Language</span>
+                        <div class="lang-toggle">
+                            <button class="lang-btn active" data-lang="en" onclick="setLang('en')">EN</button>
+                            <button class="lang-btn" data-lang="fr" onclick="setLang('fr')">FR</button>
+                        </div>
+                    </div>
+                    <div class="tnm-section">
+                        <button class="tnm-item" onclick="exportAllData();document.getElementById('top-nav-menu').classList.remove('open');">
+                            <span class="tnm-ico">↓</span> <span data-i18n="btn_export">Export data</span>
+                        </button>
+                        <button class="tnm-item" onclick="document.getElementById('import-file').click();">
+                            <span class="tnm-ico">↑</span> <span data-i18n="btn_import">Import data</span>
+                        </button>
+                        <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importAllData(event);document.getElementById('top-nav-menu').classList.remove('open');">
+                    </div>
+                    <div class="tnm-section">
+                        <button class="tnm-item" onclick="showExtensionGuide();document.getElementById('top-nav-menu').classList.remove('open');">
+                            <span class="tnm-ico">📦</span> <span data-i18n="sidebar_guide">Extension Guide</span>
+                        </button>
+                        <a class="tnm-item tnm-item--support" href="support.html">
+                            <span class="tnm-ico">❤</span> <span>Support us</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Google sign-in widget (rendered by auth.js) -->
+            <div id="auth-widget"></div>
+        </div>
+    </nav>
+
+    <!-- Hidden helper anchor for last-update text (used by JS) -->
+    <div class="last-update" id="last-update" style="display:none;"></div>
 
     <!-- Main Content -->
     <main class="main-content" id="main-content">
@@ -535,6 +529,143 @@
 
         <!-- TAB: Dashboard (Homepage) -->
         <div class="tab-content active" id="tab-dashboard">
+
+            <!-- ===== HERO: Simulation Parameters / Profit Card / Saved Scenarios ===== -->
+            <section class="dashboard-hero" id="dashboard-hero">
+                <header class="dashboard-hero-head">
+                    <h1 class="dh-title">GMSim Simulation Dashboard</h1>
+                    <p class="dh-subtitle" data-i18n="dh_subtitle">Bitcoin Mining Simulator for GoMining NFT Holders</p>
+                </header>
+
+                <div class="dashboard-hero-grid">
+                    <!-- LEFT COLUMN: Simulation Parameters -->
+                    <div class="dh-col dh-col--params">
+                        <h2 class="dh-col-title" data-i18n="dh_params_title">Simulation Parameters</h2>
+
+                        <div class="dh-param-card">
+                            <div class="dh-param-head">
+                                <span class="dh-param-icon dh-param-icon--btc">₿</span>
+                                <span class="dh-param-label" data-i18n="dh_btc_price">BTC Price (USD)</span>
+                                <span class="dh-param-value" id="dh-btc-price">—</span>
+                            </div>
+                            <div class="dh-param-current" id="dh-btc-current">—</div>
+                            <div class="dh-param-track"><div class="dh-param-fill" id="dh-btc-fill" style="width:50%"></div></div>
+                            <div class="dh-param-range"><span>$20,000</span><span>$40,000</span><span>$60,000</span><span>$80,000</span><span>$100,000</span></div>
+                        </div>
+
+                        <div class="dh-param-card">
+                            <div class="dh-param-head">
+                                <span class="dh-param-icon dh-param-icon--diff">📊</span>
+                                <span class="dh-param-label" data-i18n="dh_difficulty">Network Difficulty (T)</span>
+                                <span class="dh-param-value" id="dh-difficulty">—</span>
+                            </div>
+                            <div class="dh-param-current" id="dh-diff-current">—</div>
+                            <div class="dh-param-track"><div class="dh-param-fill" id="dh-diff-fill" style="width:55%;background:linear-gradient(90deg,var(--accent2),var(--purple))"></div></div>
+                            <div class="dh-param-range"><span>40T</span><span>60T</span><span>80T</span><span>100T</span><span>120T</span></div>
+                        </div>
+
+                        <div class="dh-param-card">
+                            <div class="dh-param-head">
+                                <span class="dh-param-icon dh-param-icon--power">⛏</span>
+                                <span class="dh-param-label" data-i18n="dh_miner_power">Miner Power (TH/s)</span>
+                                <span class="dh-param-value" id="dh-miner-power">—</span>
+                            </div>
+                            <div class="dh-param-current" id="dh-power-current">—</div>
+                            <div class="dh-param-track"><div class="dh-param-fill" id="dh-power-fill" style="width:30%;background:linear-gradient(90deg,var(--green),var(--accent))"></div></div>
+                            <div class="dh-param-range"><span>100 TH/s</span><span>1k</span><span>2.5k</span><span>3.5k</span><span>5,000 TH/s</span></div>
+                        </div>
+                    </div>
+
+                    <!-- MIDDLE COLUMN: Profit Card hero + ROI Timeline -->
+                    <div class="dh-col dh-col--profit">
+                        <div class="dh-profit-card">
+                            <div class="dh-profit-head">
+                                <h3 class="dh-profit-title" data-i18n="dh_profit_card">Profit Card</h3>
+                                <span class="dh-profit-sub" data-i18n="dh_estimated">Estimated Profit & ROI</span>
+                            </div>
+                            <div class="dh-profit-hero">
+                                <span class="dh-profit-label" data-i18n="dh_net_profit">Net Profit:</span>
+                                <span class="dh-profit-value" id="dh-net-profit">+$0.00</span>
+                            </div>
+                            <div class="dh-profit-stats">
+                                <div class="dh-pstat">
+                                    <div class="dh-pstat-label" data-i18n="dh_roi_period">ROI Period</div>
+                                    <div class="dh-pstat-value" id="dh-roi-period">—</div>
+                                </div>
+                                <div class="dh-pstat">
+                                    <div class="dh-pstat-label" data-i18n="dh_daily_payout">Daily Payout</div>
+                                    <div class="dh-pstat-value" id="dh-daily-payout">—</div>
+                                </div>
+                                <div class="dh-pstat">
+                                    <div class="dh-pstat-label" data-i18n="dh_trend">Trend</div>
+                                    <div class="dh-pstat-value" id="dh-trend">📈</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="dh-timeline-card">
+                            <div class="dh-timeline-head">
+                                <h3 class="dh-timeline-title" data-i18n="dh_roi_timeline">ROI Timeline</h3>
+                                <div class="dh-timeline-nav">
+                                    <button class="dh-tl-arrow" aria-label="Previous">‹</button>
+                                    <button class="dh-tl-arrow" aria-label="Next">›</button>
+                                </div>
+                            </div>
+                            <canvas id="dh-roi-canvas" class="dh-timeline-canvas"></canvas>
+                            <div class="dh-timeline-legend">
+                                <span class="dh-legend-item"><span class="dh-legend-dot" style="background:var(--accent)"></span> <span data-i18n="dh_cumulative">Cumulative Profit</span></span>
+                                <span class="dh-legend-item"><span class="dh-legend-dot" style="background:var(--green)"></span> <span data-i18n="dh_breakeven">Initial Investment Breakeven</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RIGHT COLUMN: Saved Scenarios + Quick Action Preset + Load -->
+                    <div class="dh-col dh-col--scenarios">
+                        <div class="dh-card dh-scenarios-card">
+                            <h3 class="dh-card-title" data-i18n="dh_saved_scenarios">Saved Scenarios</h3>
+                            <button class="dh-scenario-row" onclick="applyDashboardScenario('conservative')" data-scenario="conservative">
+                                <div class="dh-scenario-name" data-i18n="dh_scn_conservative">Conservative Growth</div>
+                                <div class="dh-scenario-meta">BTC: $35k &nbsp;·&nbsp; Diff: 70T &nbsp;·&nbsp; Pwr: 1500 TH/s</div>
+                            </button>
+                            <button class="dh-scenario-row dh-scenario-row--active" onclick="applyDashboardScenario('current')" data-scenario="current">
+                                <div class="dh-scenario-name" data-i18n="dh_scn_current">Current Market</div>
+                                <div class="dh-scenario-meta">BTC: $45k &nbsp;·&nbsp; Diff: 85T &nbsp;·&nbsp; Pwr: 2500 TH/s</div>
+                            </button>
+                            <button class="dh-scenario-row" onclick="applyDashboardScenario('high-risk')" data-scenario="high-risk">
+                                <div class="dh-scenario-name" data-i18n="dh_scn_high_risk">High Risk / Reward</div>
+                                <div class="dh-scenario-meta">BTC: $75k &nbsp;·&nbsp; Diff: 100T &nbsp;·&nbsp; Pwr: 4000 TH/s</div>
+                            </button>
+                        </div>
+
+                        <div class="dh-card dh-presets-card">
+                            <h3 class="dh-card-title" data-i18n="dh_quick_preset">Quick action Preset</h3>
+                            <button class="dh-preset dh-preset--bull" onclick="applyDashboardScenario('bull')">
+                                <div class="dh-preset-name">BULL RUN</div>
+                                <div class="dh-preset-meta">BTC: $80k &nbsp;·&nbsp; Diff: 95T &nbsp;·&nbsp; Pwr: 3000 TH/s</div>
+                            </button>
+                            <button class="dh-preset dh-preset--bear" onclick="applyDashboardScenario('bear')">
+                                <div class="dh-preset-name">BEAR MARKET</div>
+                                <div class="dh-preset-meta">BTC: $25k &nbsp;·&nbsp; Diff: 60T &nbsp;·&nbsp; Pwr: 2000 TH/s</div>
+                            </button>
+                        </div>
+
+                        <button class="dh-load-btn" onclick="switchTab('scenarios')" data-i18n="dh_load_scenario">Load Scenario</button>
+                    </div>
+                </div>
+
+                <!-- "Show details" toggle: collapses/expands the existing detail sections below -->
+                <div class="dh-details-toggle">
+                    <button onclick="toggleDashboardDetails()" id="dh-details-btn" class="dh-details-btn" aria-expanded="true">
+                        <span data-i18n="dh_hide_details">Hide detailed dashboard</span>
+                        <span class="dh-details-chev">▾</span>
+                    </button>
+                </div>
+            </section>
+            <!-- ===== END HERO ===== -->
+
+            <!-- Wrapper for the existing detail sections — collapsed via the toggle above -->
+            <div id="dashboard-details" class="dashboard-details">
+
             <!-- Empty state (shown when no data) -->
             <div id="empty-state" style="display:none;text-align:center;padding:40px 20px;">
                 <div style="font-size:3em;margin-bottom:15px;">⛏</div>
@@ -730,9 +861,11 @@
                     </div>
                 </div>
             </div>
+
+            </div><!-- /#dashboard-details -->
         </div>
 
-        <!-- Old tabs container (hidden, replaced by sidebar) -->
+        <!-- Old tabs container (hidden, replaced by top-nav) -->
         <div class="tabs" style="display:none;"></div>
 
         <!-- TAB: Mining Simulator -->
@@ -5004,6 +5137,210 @@
       });
       const authGate = document.getElementById('auth-gate');
       if (authGate) observer.observe(authGate, { attributes: true, attributeFilter: ['style'] });
+    })();
+    </script>
+
+    <!-- =========================================================
+         Dashboard Hero behaviors — show/hide detail sections,
+         apply scenario presets, mirror state into the hero cards
+         and draw the ROI timeline preview chart on a 5s cadence.
+         All reads — no writes to window.state.
+         ========================================================= -->
+    <script>
+    (function () {
+        // --- Show / hide detailed dashboard ---
+        window.toggleDashboardDetails = function () {
+            const wrap = document.getElementById('dashboard-details');
+            const btn  = document.getElementById('dh-details-btn');
+            const labelEl = btn?.querySelector('span[data-i18n]');
+            if (!wrap || !btn) return;
+            const collapsed = wrap.classList.toggle('collapsed');
+            btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+            if (labelEl) {
+                labelEl.textContent = collapsed
+                    ? (window.t ? window.t('dh_show_details') || 'Show detailed dashboard' : 'Show detailed dashboard')
+                    : (window.t ? window.t('dh_hide_details') || 'Hide detailed dashboard' : 'Hide detailed dashboard');
+            }
+        };
+
+        // --- Apply scenario preset: switch to the BTC Scenarios tab where
+        //     the user can fine-tune. We don't mutate state here — the
+        //     existing scenarios tab owns that logic. The preset's purpose
+        //     is to give a quick visual pivot into the right context.
+        window.applyDashboardScenario = function (name) {
+            // Highlight the picked row
+            document.querySelectorAll('.dh-scenario-row, .dh-preset').forEach(el => {
+                el.classList.remove('dh-scenario-row--active');
+            });
+            const target = document.querySelector('[data-scenario="' + name + '"]');
+            if (target && target.classList.contains('dh-scenario-row')) {
+                target.classList.add('dh-scenario-row--active');
+            }
+            // Hand off to the BTC Scenarios tab — that's where the
+            // calculation/comparison happens.
+            if (typeof window.switchTab === 'function') {
+                try { window.switchTab('scenarios'); } catch {}
+            }
+        };
+
+        // --- Mirror state into the hero cards ---
+        const $ = (id) => document.getElementById(id);
+        const fmtBig = (n) => {
+            if (n == null || isNaN(n)) return '—';
+            const abs = Math.abs(n);
+            if (abs >= 1e21) return (n / 1e21).toFixed(2) + 'Z';
+            if (abs >= 1e18) return (n / 1e18).toFixed(2) + 'E';
+            if (abs >= 1e15) return (n / 1e15).toFixed(2) + 'P';
+            if (abs >= 1e12) return (n / 1e12).toFixed(2) + 'T';
+            if (abs >= 1e9)  return (n / 1e9).toFixed(2) + 'G';
+            if (abs >= 1e6)  return (n / 1e6).toFixed(2) + 'M';
+            return n.toLocaleString();
+        };
+        const clampPct = (n, lo, hi) => Math.max(0, Math.min(100, ((n - lo) / (hi - lo)) * 100));
+
+        function updateHero() {
+            const s = window.state || {};
+
+            // BTC Price
+            if (s.btcPrice) {
+                const v = s.btcPrice;
+                const t = '$' + Math.round(v).toLocaleString();
+                if ($('dh-btc-price'))   $('dh-btc-price').textContent = t;
+                if ($('dh-btc-current')) $('dh-btc-current').textContent = t;
+                const fill = $('dh-btc-fill');
+                if (fill) fill.style.width = clampPct(v, 20000, 100000).toFixed(1) + '%';
+            }
+
+            // Network Difficulty (in T)
+            if (s.difficulty) {
+                const tDiff = s.difficulty / 1e12;
+                const txt = tDiff.toFixed(1) + 'T';
+                if ($('dh-difficulty'))   $('dh-difficulty').textContent = txt;
+                if ($('dh-diff-current')) $('dh-diff-current').textContent = txt;
+                const fill = $('dh-diff-fill');
+                if (fill) fill.style.width = clampPct(tDiff, 40, 120).toFixed(1) + '%';
+            }
+
+            // Miner Power — read from form input (#hashrate) or state.power
+            const powerInput = $('hashrate');
+            const power = (powerInput && parseFloat(powerInput.value)) || s.power || s.totalPower || null;
+            if (power) {
+                const txt = power.toLocaleString(undefined, { maximumFractionDigits: 2 }) + ' TH/s';
+                if ($('dh-miner-power'))  $('dh-miner-power').textContent = txt;
+                if ($('dh-power-current')) $('dh-power-current').textContent = txt;
+                const fill = $('dh-power-fill');
+                if (fill) fill.style.width = clampPct(power, 100, 5000).toFixed(1) + '%';
+            }
+
+            // Profit — derive from existing dashboard fields if present.
+            // Prefer #dash-today (today's gain), else fallback to monthly.
+            const todayEl  = $('dash-today');
+            const monthEl  = $('dash-month');
+            const roiEl    = $('dash-roi');
+            const dailyEl  = $('dash-today-sub') || $('dash-today');
+            const profit = (todayEl && todayEl.textContent && todayEl.textContent !== '--')
+                ? todayEl.textContent
+                : (monthEl && monthEl.textContent && monthEl.textContent !== '--' ? monthEl.textContent : '+$0.00');
+            if ($('dh-net-profit')) $('dh-net-profit').textContent = profit;
+
+            // ROI Period — pull from estimated annual ROI if available
+            if (roiEl && roiEl.textContent && roiEl.textContent !== '--') {
+                if ($('dh-roi-period')) $('dh-roi-period').textContent = roiEl.textContent;
+            }
+
+            // Daily Payout
+            if (todayEl && todayEl.textContent && todayEl.textContent !== '--') {
+                if ($('dh-daily-payout')) $('dh-daily-payout').textContent = todayEl.textContent;
+            }
+        }
+
+        // --- Mini ROI timeline chart on canvas ---
+        function drawTimeline() {
+            const c = $('dh-roi-canvas');
+            if (!c) return;
+            const cssW = c.clientWidth || 400;
+            const cssH = c.clientHeight || 180;
+            const dpr = window.devicePixelRatio || 1;
+            c.width = cssW * dpr;
+            c.height = cssH * dpr;
+            const ctx = c.getContext('2d');
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, cssW, cssH);
+
+            // Grid
+            ctx.strokeStyle = 'rgba(255,255,255,0.04)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 5; i++) {
+                const y = (cssH / 4) * i;
+                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cssW, y); ctx.stroke();
+            }
+
+            // Synthetic data — a smooth growth curve based on rewardHistory length.
+            // If real history exists, the inline app already renders rich charts
+            // in the detail sections below; this is a hero teaser.
+            const n = (window.state?.rewardHistory?.length) || 24;
+            const points = [];
+            for (let i = 0; i < n; i++) {
+                const t = i / (n - 1);
+                // Compound growth shape, slightly noisy
+                const v = Math.pow(t, 1.7) + Math.sin(t * 6) * 0.03;
+                points.push(v);
+            }
+
+            // Cumulative profit line (accent)
+            ctx.strokeStyle = '#f7931a';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            points.forEach((v, i) => {
+                const x = (cssW / (points.length - 1)) * i;
+                const y = cssH - 16 - v * (cssH - 32);
+                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+            // Fill under the curve
+            ctx.lineTo(cssW, cssH);
+            ctx.lineTo(0, cssH);
+            ctx.closePath();
+            const grad = ctx.createLinearGradient(0, 0, 0, cssH);
+            grad.addColorStop(0, 'rgba(247,147,26,0.20)');
+            grad.addColorStop(1, 'rgba(247,147,26,0)');
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            // Breakeven horizontal line (green)
+            ctx.strokeStyle = '#3fb950';
+            ctx.setLineDash([4, 5]);
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            const beY = cssH - 16 - 0.55 * (cssH - 32);
+            ctx.moveTo(0, beY);
+            ctx.lineTo(cssW, beY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        // Tick — update both hero values and the timeline
+        function tick() {
+            updateHero();
+            drawTimeline();
+        }
+        setInterval(tick, 5000);
+        setTimeout(tick, 1500);
+
+        // Close the overflow menu on outside click
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('top-nav-menu');
+            if (!menu || !menu.classList.contains('open')) return;
+            const wrap = menu.closest('.top-nav-menu-wrap');
+            if (wrap && !wrap.contains(e.target)) menu.classList.remove('open');
+        });
+
+        // Redraw timeline on resize
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(drawTimeline, 120);
+        });
     })();
     </script>
 
