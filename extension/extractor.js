@@ -386,40 +386,70 @@
     // 3 miners). Reading the DOM gives us the value the user actually
     // sees, which is what the simulator should use for projections.
     //
-    // Heuristic: find any text node equal to "POWER" / "Power" (the
-    // KPI label on the farm overview), then walk up to the card and
-    // pick the largest plausible "X TH" inside it. The largest match
-    // is the farm total even when individual miners are also rendered.
+    // Strategy:
+    //   1) Try to find a text node like "POWER" / "Power" / "power" /
+    //      "Total power" / "Farm power" / "Hashrate" (any case), then
+    //      walk up to its card and capture every "X TH" inside.
+    //   2) If no labelled match found, fall back to scanning the whole
+    //      page for the LARGEST plausible "X TH" value > 50 — on a farm
+    //      page that's almost certainly the farm total. We keep this as
+    //      a fallback so users on a non-overview view still get a value.
+    //
+    // The function logs which strategy fired so the user can verify in
+    // DevTools when the value seems wrong.
     function scanFarmPowerFromDom() {
         try {
-            const candidates = [];
+            const POWER_LABELS = /^(?:total\s+)?(?:farm\s+)?(?:power|hashrate)\s*[:.]?\s*$/i;
+            const TH_PATTERN = /(\d+(?:[.,]\d+)?)\s*TH\b(?!\/s|H)/g;
+            const labelledCandidates = [];
+
+            // Strategy 1 — labelled
             const walker = document.createTreeWalker(
                 document.body, NodeFilter.SHOW_TEXT, null
             );
             let node;
             while (node = walker.nextNode()) {
-                const t = (node.nodeValue || '').trim();
-                if (t !== 'POWER' && t !== 'Power') continue;
+                const t = (node.nodeValue || '').replace(/ /g, ' ').trim();
+                if (!t || !POWER_LABELS.test(t)) continue;
                 let cur = node.parentElement;
-                for (let depth = 0; depth < 5 && cur; depth++, cur = cur.parentElement) {
-                    const text = cur.textContent || '';
-                    // Match "X TH" but NOT "TH/s" (hashrate) or "TH H" (rare unit).
-                    // Also tolerate "," as decimal separator (FR locale).
-                    const matches = [...text.matchAll(/(\d+(?:[.,]\d+)?)\s*TH(?!\/s|H)/g)];
+                for (let depth = 0; depth < 6 && cur; depth++, cur = cur.parentElement) {
+                    const text = (cur.textContent || '').replace(/ /g, ' ');
+                    TH_PATTERN.lastIndex = 0;
+                    const matches = [...text.matchAll(TH_PATTERN)];
                     if (matches.length) {
                         for (const m of matches) {
                             const v = parseFloat(m[1].replace(',', '.'));
-                            if (v > 0.01 && v < 1e7) candidates.push(v);
+                            if (v > 0.01 && v < 1e7) labelledCandidates.push(v);
                         }
                         break;
                     }
                 }
             }
-            if (!candidates.length) return null;
-            // The farm total is the largest "POWER X TH" in the cluster
-            // (it can never be smaller than any individual miner's power).
-            return Math.max(...candidates);
-        } catch (_) {
+            if (labelledCandidates.length) {
+                const best = Math.max(...labelledCandidates);
+                try { console.log('[GoMining Extractor] DOM power (labelled):', best, 'from', labelledCandidates); } catch {}
+                return best;
+            }
+
+            // Strategy 2 — biggest plausible "X TH" on the page
+            const fallbackCandidates = [];
+            const bodyText = (document.body?.textContent || '').replace(/ /g, ' ');
+            TH_PATTERN.lastIndex = 0;
+            const allMatches = [...bodyText.matchAll(TH_PATTERN)];
+            for (const m of allMatches) {
+                const v = parseFloat(m[1].replace(',', '.'));
+                if (v > 50 && v < 1e7) fallbackCandidates.push(v);
+            }
+            if (fallbackCandidates.length) {
+                const best = Math.max(...fallbackCandidates);
+                try { console.log('[GoMining Extractor] DOM power (fallback / largest TH):', best, 'from', fallbackCandidates); } catch {}
+                return best;
+            }
+
+            try { console.log('[GoMining Extractor] No DOM power match on this page'); } catch {}
+            return null;
+        } catch (e) {
+            try { console.log('[GoMining Extractor] DOM scrape error:', e); } catch {}
             return null;
         }
     }
