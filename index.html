@@ -5183,74 +5183,91 @@
             }
         };
 
-        // --- Mirror state into the hero cards ---
+        // --- Mirror dashboard values into the hero cards ---
+        // We READ from the existing populated DOM elements (the canonical
+        // KPI displays the inline app maintains). This keeps the hero in
+        // perfect sync with the rest of the dashboard, and avoids the
+        // `let state` block-scoping issue (state is not on window).
         const $ = (id) => document.getElementById(id);
-        const fmtBig = (n) => {
-            if (n == null || isNaN(n)) return '—';
-            const abs = Math.abs(n);
-            if (abs >= 1e21) return (n / 1e21).toFixed(2) + 'Z';
-            if (abs >= 1e18) return (n / 1e18).toFixed(2) + 'E';
-            if (abs >= 1e15) return (n / 1e15).toFixed(2) + 'P';
-            if (abs >= 1e12) return (n / 1e12).toFixed(2) + 'T';
-            if (abs >= 1e9)  return (n / 1e9).toFixed(2) + 'G';
-            if (abs >= 1e6)  return (n / 1e6).toFixed(2) + 'M';
-            return n.toLocaleString();
+
+        // Read text from a DOM element, treating placeholders as null
+        const readDom = (id) => {
+            const el = document.getElementById(id);
+            if (!el) return null;
+            const t = (el.textContent || '').trim();
+            if (!t || t === '--' || t === '—') return null;
+            return t;
+        };
+        // Extract first numeric (handles "$45,000", "85.2T", "335.42 TH/s", etc.)
+        const numFromText = (t) => {
+            if (t == null) return null;
+            const m = String(t).replace(/,/g, '').match(/-?\d+(\.\d+)?/);
+            return m ? parseFloat(m[0]) : null;
         };
         const clampPct = (n, lo, hi) => Math.max(0, Math.min(100, ((n - lo) / (hi - lo)) * 100));
 
         function updateHero() {
-            const s = window.state || {};
-
-            // BTC Price
-            if (s.btcPrice) {
-                const v = s.btcPrice;
-                const t = '$' + Math.round(v).toLocaleString();
-                if ($('dh-btc-price'))   $('dh-btc-price').textContent = t;
-                if ($('dh-btc-current')) $('dh-btc-current').textContent = t;
+            // BTC Price — read from #btc-price (the canonical Bitcoin KPI)
+            const btcText = readDom('btc-price');
+            if (btcText) {
+                if ($('dh-btc-price'))   $('dh-btc-price').textContent = btcText;
+                if ($('dh-btc-current')) $('dh-btc-current').textContent = btcText;
+                const v = numFromText(btcText);
                 const fill = $('dh-btc-fill');
-                if (fill) fill.style.width = clampPct(v, 20000, 100000).toFixed(1) + '%';
+                if (fill && v != null) fill.style.width = clampPct(v, 20000, 100000).toFixed(1) + '%';
             }
 
-            // Network Difficulty (in T)
-            if (s.difficulty) {
-                const tDiff = s.difficulty / 1e12;
-                const txt = tDiff.toFixed(1) + 'T';
-                if ($('dh-difficulty'))   $('dh-difficulty').textContent = txt;
-                if ($('dh-diff-current')) $('dh-diff-current').textContent = txt;
-                const fill = $('dh-diff-fill');
-                if (fill) fill.style.width = clampPct(tDiff, 40, 120).toFixed(1) + '%';
+            // Network Difficulty — read from #net-difficulty (hidden helper).
+            // The app stores it raw (huge number); convert to T (1e12).
+            const diffText = readDom('net-difficulty');
+            if (diffText) {
+                let v = numFromText(diffText);
+                if (v != null) {
+                    // If the value is clearly raw (>1e10), convert to T
+                    if (v > 1e10) v = v / 1e12;
+                    const txt = v.toFixed(1) + 'T';
+                    if ($('dh-difficulty'))   $('dh-difficulty').textContent = txt;
+                    if ($('dh-diff-current')) $('dh-diff-current').textContent = txt;
+                    const fill = $('dh-diff-fill');
+                    if (fill) fill.style.width = clampPct(v, 40, 120).toFixed(1) + '%';
+                }
             }
 
-            // Miner Power — read from form input (#hashrate) or state.power
-            const powerInput = $('hashrate');
-            const power = (powerInput && parseFloat(powerInput.value)) || s.power || s.totalPower || null;
-            if (power) {
-                const txt = power.toLocaleString(undefined, { maximumFractionDigits: 2 }) + ' TH/s';
-                if ($('dh-miner-power'))  $('dh-miner-power').textContent = txt;
-                if ($('dh-power-current')) $('dh-power-current').textContent = txt;
+            // Miner Power — read from #dash-miner (the canonical Miner KPI).
+            // This is what the user sees on the rest of the dashboard, so
+            // the hero stays in sync. Falls back to form #hashrate if KPI
+            // is not yet populated.
+            let minerText = readDom('dash-miner');
+            if (!minerText) {
+                const inp = $('hashrate');
+                if (inp && inp.value) {
+                    const v = parseFloat(inp.value);
+                    if (!isNaN(v)) minerText = v.toLocaleString(undefined, { maximumFractionDigits: 2 }) + ' TH/s';
+                }
+            }
+            if (minerText) {
+                if ($('dh-miner-power'))   $('dh-miner-power').textContent = minerText;
+                if ($('dh-power-current')) $('dh-power-current').textContent = minerText;
+                const v = numFromText(minerText);
                 const fill = $('dh-power-fill');
-                if (fill) fill.style.width = clampPct(power, 100, 5000).toFixed(1) + '%';
+                if (fill && v != null) fill.style.width = clampPct(v, 100, 5000).toFixed(1) + '%';
             }
 
-            // Profit — derive from existing dashboard fields if present.
-            // Prefer #dash-today (today's gain), else fallback to monthly.
-            const todayEl  = $('dash-today');
-            const monthEl  = $('dash-month');
-            const roiEl    = $('dash-roi');
-            const dailyEl  = $('dash-today-sub') || $('dash-today');
-            const profit = (todayEl && todayEl.textContent && todayEl.textContent !== '--')
-                ? todayEl.textContent
-                : (monthEl && monthEl.textContent && monthEl.textContent !== '--' ? monthEl.textContent : '+$0.00');
-            if ($('dh-net-profit')) $('dh-net-profit').textContent = profit;
-
-            // ROI Period — pull from estimated annual ROI if available
-            if (roiEl && roiEl.textContent && roiEl.textContent !== '--') {
-                if ($('dh-roi-period')) $('dh-roi-period').textContent = roiEl.textContent;
+            // Net Profit hero — prefer today's gain, then monthly
+            const profitText = readDom('dash-today') || readDom('dash-month') || null;
+            if (profitText && $('dh-net-profit')) {
+                $('dh-net-profit').textContent = profitText;
             }
 
-            // Daily Payout
-            if (todayEl && todayEl.textContent && todayEl.textContent !== '--') {
-                if ($('dh-daily-payout')) $('dh-daily-payout').textContent = todayEl.textContent;
+            // Daily Payout — same as today's gain
+            if (profitText && $('dh-daily-payout')) {
+                $('dh-daily-payout').textContent = profitText;
+            }
+
+            // ROI Period — pull from estimated annual ROI
+            const roiText = readDom('dash-roi');
+            if (roiText && $('dh-roi-period')) {
+                $('dh-roi-period').textContent = roiText;
             }
         }
 
