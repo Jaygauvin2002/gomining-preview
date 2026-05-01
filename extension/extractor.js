@@ -378,6 +378,52 @@
     });
     observer.observe(document.body, { childList: true, subtree: true });
 
+    // === Scrape the visible farm power from the GoMining DOM ===
+    // The /nft/get-my API returns each NFT's "base" power, but GoMining's
+    // Mining-farm widget displays a total that can include bonuses or
+    // adjustments not reflected in that field (we observed 333.27 from
+    // the API summing while the UI displayed 335.43 across the same
+    // 3 miners). Reading the DOM gives us the value the user actually
+    // sees, which is what the simulator should use for projections.
+    //
+    // Heuristic: find any text node equal to "POWER" / "Power" (the
+    // KPI label on the farm overview), then walk up to the card and
+    // pick the largest plausible "X TH" inside it. The largest match
+    // is the farm total even when individual miners are also rendered.
+    function scanFarmPowerFromDom() {
+        try {
+            const candidates = [];
+            const walker = document.createTreeWalker(
+                document.body, NodeFilter.SHOW_TEXT, null
+            );
+            let node;
+            while (node = walker.nextNode()) {
+                const t = (node.nodeValue || '').trim();
+                if (t !== 'POWER' && t !== 'Power') continue;
+                let cur = node.parentElement;
+                for (let depth = 0; depth < 5 && cur; depth++, cur = cur.parentElement) {
+                    const text = cur.textContent || '';
+                    // Match "X TH" but NOT "TH/s" (hashrate) or "TH H" (rare unit).
+                    // Also tolerate "," as decimal separator (FR locale).
+                    const matches = [...text.matchAll(/(\d+(?:[.,]\d+)?)\s*TH(?!\/s|H)/g)];
+                    if (matches.length) {
+                        for (const m of matches) {
+                            const v = parseFloat(m[1].replace(',', '.'));
+                            if (v > 0.01 && v < 1e7) candidates.push(v);
+                        }
+                        break;
+                    }
+                }
+            }
+            if (!candidates.length) return null;
+            // The farm total is the largest "POWER X TH" in the cluster
+            // (it can never be smaller than any individual miner's power).
+            return Math.max(...candidates);
+        } catch (_) {
+            return null;
+        }
+    }
+
     // === Extract essential data for simulator ===
     function extractEssentials() {
         const result = {
@@ -403,7 +449,9 @@
                     energyEfficiency: avgEfficiency,
                     level: main.level,
                     name: main.name,
-                    minerCount: nfts.length
+                    minerCount: nfts.length,
+                    apiPower: totalPower,
+                    powerSource: 'api'
                 };
             }
             if (m.url?.includes('/wallet/find-by-user') && m.data?.data?.array) {
@@ -636,6 +684,21 @@
             result.income.prPerThSource = 'partial-day-fallback';
         }
         delete result.income._partialDayPr;
+
+        // === Override miner.power with the visible DOM value (when available) ===
+        // The /nft/get-my API can return a sum that diverges from what
+        // the Mining-farm widget actually shows on the page (we observed
+        // 333.27 vs 335.43 with the same 3 miners). Trust the UI: the user
+        // has been verifying against it. Falls back silently if no DOM
+        // match (e.g. user is on a different GoMining page).
+        const domPower = scanFarmPowerFromDom();
+        if (domPower != null && domPower > 0) {
+            // Keep the API value for diagnostics; expose source so the
+            // simulator can hint where the number came from later.
+            result.miner.apiPower = result.miner.power || null;
+            result.miner.power = domPower;
+            result.miner.powerSource = 'dom';
+        }
 
         return result;
     }
