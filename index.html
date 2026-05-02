@@ -19,10 +19,10 @@
     <link rel="manifest" href="pwa-manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
     <title>GMSim — GoMining NFT Simulator</title>
-    <link rel="stylesheet" href="css/main.css?v=20260502n">
-    <link rel="stylesheet" href="css/tokens.css?v=20260502n">
-    <link rel="stylesheet" href="css/components.css?v=20260502n">
-    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502n">
+    <link rel="stylesheet" href="css/main.css?v=20260502o">
+    <link rel="stylesheet" href="css/tokens.css?v=20260502o">
+    <link rel="stylesheet" href="css/components.css?v=20260502o">
+    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502o">
 </head>
 <body>
     <!-- =========================================================
@@ -3044,13 +3044,19 @@
         // withdraw fee folded into that field).
         function computeDayNetGmt(day) {
             const power = day.power || 0;
+            // `totalDiscount` is stored as a fraction (e.g. 0.0938 for 9.38%),
+            // NOT as a percent. The legacy code at line ~2987 confirms this:
+            // `calcDailyReward(..., latest.totalDiscount * 100, ...)`
+            // multiplies by 100 before passing to a function that expects %.
+            // Earlier I divided by 100 here which collapsed the discount to
+            // ~0.001 → fees over-estimated by ~10% → net display 30% low.
             const discount = day.totalDiscount || 0;
             const btcP = day.btcPrice || state.btcPrice || 67000;
             const gmtP = day.gmtPrice || state.gmtPrice || 0.3;
             if (!power || !btcP || !gmtP || !day.poolReward) return 0;
             const ELEC_USD_KWH = 0.05;
             const EFFICIENCY_W_TH = 15;
-            const discountMult = 1 - discount / 100;
+            const discountMult = 1 - discount;  // discount is already a fraction
             const c1Per = (ELEC_USD_KWH * 24 * EFFICIENCY_W_TH / gmtP / 1000) * discountMult;
             const c2Per = (SERVICE_COST_PER_TH / gmtP) * discountMult;
             const totalFees = (c1Per + c2Per) * power;
