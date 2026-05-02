@@ -19,10 +19,10 @@
     <link rel="manifest" href="pwa-manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
     <title>GMSim — GoMining NFT Simulator</title>
-    <link rel="stylesheet" href="css/main.css?v=20260502">
-    <link rel="stylesheet" href="css/tokens.css?v=20260502">
-    <link rel="stylesheet" href="css/components.css?v=20260502">
-    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502">
+    <link rel="stylesheet" href="css/main.css?v=20260502b">
+    <link rel="stylesheet" href="css/tokens.css?v=20260502b">
+    <link rel="stylesheet" href="css/components.css?v=20260502b">
+    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502b">
 </head>
 <body>
     <!-- =========================================================
@@ -4939,7 +4939,7 @@
         <span class="lf-item"><span class="lf-label">BTC</span><span class="lf-value" id="ftk-btc">—</span></span>
         <span class="lf-item"><span class="lf-label">GMT</span><span class="lf-value" id="ftk-gmt">—</span></span>
         <span class="lf-item"><span class="lf-label">Hashrate</span><span class="lf-value" id="ftk-hashrate">—</span></span>
-        <span class="lf-item"><span class="lf-label">Difficulty</span><span class="lf-value" id="ftk-difficulty">—</span></span>
+        <span class="lf-item"><span class="lf-label">Pool Reward</span><span class="lf-value" id="ftk-poolreward">—</span></span>
         <span class="lf-spacer"></span>
         <span class="lf-links">
             <a href="about.html">About</a>
@@ -5433,29 +5433,43 @@
         const ticker = document.getElementById('gmsim-footer-ticker');
         if (!ticker) return;
 
-        function fmtBig(n) {
-            if (n == null || isNaN(n)) return '—';
-            const abs = Math.abs(n);
-            if (abs >= 1e21) return (n / 1e21).toFixed(2) + ' Z';
-            if (abs >= 1e18) return (n / 1e18).toFixed(2) + ' E';
-            if (abs >= 1e15) return (n / 1e15).toFixed(2) + ' P';
-            if (abs >= 1e12) return (n / 1e12).toFixed(2) + ' T';
-            if (abs >= 1e9)  return (n / 1e9).toFixed(2) + ' G';
-            if (abs >= 1e6)  return (n / 1e6).toFixed(2) + ' M';
-            return n.toLocaleString();
+        // Read text from the canonical DOM KPI elements (the inline app
+        // populates them from fetchLiveData). We avoid window.state
+        // because the inline script declares `let state = ...` which is
+        // not exposed on window. DOM mirroring also keeps the footer
+        // perfectly in sync with what the dashboard shows above.
+        const readDom = (id) => {
+            const el = document.getElementById(id);
+            if (!el) return null;
+            const t = (el.textContent || '').trim();
+            if (!t || t === '--' || t === '—') return null;
+            return t;
+        };
+
+        function set(id, val) {
+            const el = document.getElementById(id);
+            if (el && val) el.textContent = val;
         }
 
         function update() {
-            if (typeof window.state === 'undefined' || !window.state) return;
-            const s = window.state;
-            const set = (id, val) => {
-                const el = document.getElementById(id);
-                if (el && val) el.textContent = val;
-            };
-            if (s.btcPrice)        set('ftk-btc', '$' + Math.round(s.btcPrice).toLocaleString());
-            if (s.gmtPrice)        set('ftk-gmt', '$' + s.gmtPrice.toFixed(4));
-            if (s.networkHashrate) set('ftk-hashrate', fmtBig(s.networkHashrate) + 'H/s');
-            if (s.difficulty)      set('ftk-difficulty', fmtBig(s.difficulty));
+            // BTC / GMT — direct mirror from the dashboard KPI cells
+            const btc = readDom('btc-price');
+            if (btc) set('ftk-btc', btc);
+            const gmt = readDom('gmt-price');
+            if (gmt) set('ftk-gmt', gmt);
+
+            // Hashrate — historically stored on `#net-difficulty`
+            // (the element ID is misleading; it contains "X EH/s" of
+            // total network hashrate). We keep the misnomer in the
+            // existing inline app and just consume it here.
+            const hr = readDom('net-difficulty');
+            if (hr) set('ftk-hashrate', hr);
+
+            // Pool Reward (sat/TH/day) — from `#net-hashrate`, which
+            // actually shows "X PR" (pool reward). Same naming oddity
+            // as above; we read what's there and label correctly.
+            const pr = readDom('net-hashrate');
+            if (pr) set('ftk-poolreward', pr);
         }
 
         function reflectAppVisibility() {
