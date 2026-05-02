@@ -1177,6 +1177,11 @@ body.has-live-footer .main-content { padding-bottom: 64px; }
     border-color: var(--gmt-line);
     color: var(--purple);
 }
+.dh-param-icon--pr {
+    background: rgba(241, 196, 15, 0.10);
+    border-color: rgba(241, 196, 15, 0.28);
+    color: var(--a-strategy);
+}
 
 /* --- ₿ ⇄ G symbol toggle inside the price param card --- */
 .dh-price-toggle {
@@ -1211,6 +1216,16 @@ body.has-live-footer .main-content { padding-bottom: 64px; }
 .dh-pt-btn.active { color: #1a1100; transform: scale(1.02); }
 .dh-pt-btn[data-pmode="btc"].active { background: var(--accent-500); color: #1a1100; }
 .dh-pt-btn[data-pmode="gmt"].active { background: var(--purple); color: #1a0033; }
+/* DIFF / PR (network metric toggle on the second card) */
+.dh-pt-btn[data-hmode] {
+    width: auto;
+    padding: 0 8px;
+    font-size: 0.66em;
+    font-weight: 800;
+    letter-spacing: var(--ls-wide);
+}
+.dh-pt-btn[data-hmode="diff"].active { background: var(--accent2); color: #001a33; }
+.dh-pt-btn[data-hmode="pr"].active { background: var(--a-strategy); color: #1a1500; }
 .dh-param-label {
     flex: 1;
     font-size: 0.78em;

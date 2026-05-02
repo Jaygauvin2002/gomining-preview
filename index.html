@@ -19,10 +19,10 @@
     <link rel="manifest" href="pwa-manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
     <title>GMSim — GoMining NFT Simulator</title>
-    <link rel="stylesheet" href="css/main.css?v=20260502b">
-    <link rel="stylesheet" href="css/tokens.css?v=20260502b">
-    <link rel="stylesheet" href="css/components.css?v=20260502b">
-    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502b">
+    <link rel="stylesheet" href="css/main.css?v=20260502c">
+    <link rel="stylesheet" href="css/tokens.css?v=20260502c">
+    <link rel="stylesheet" href="css/components.css?v=20260502c">
+    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502c">
 </head>
 <body>
     <!-- =========================================================
@@ -559,13 +559,17 @@
 
                         <div class="dh-param-card">
                             <div class="dh-param-head">
-                                <span class="dh-param-icon dh-param-icon--diff">📊</span>
-                                <span class="dh-param-label" data-i18n="dh_difficulty">Network Difficulty (T)</span>
+                                <span class="dh-param-icon dh-param-icon--diff" id="dh-hash-icon">📊</span>
+                                <span class="dh-param-label" id="dh-hash-label">Network Difficulty (T)</span>
+                                <div class="dh-price-toggle" role="tablist" aria-label="Network metric">
+                                    <button type="button" class="dh-pt-btn dh-pt-btn--diff active" data-hmode="diff" onclick="setDhHashMode('diff')" title="Network difficulty">DIFF</button>
+                                    <button type="button" class="dh-pt-btn dh-pt-btn--pr" data-hmode="pr" onclick="setDhHashMode('pr')" title="Pool reward">PR</button>
+                                </div>
                                 <span class="dh-param-value" id="dh-difficulty">—</span>
                             </div>
                             <div class="dh-param-current" id="dh-diff-current">—</div>
                             <div class="dh-param-track"><div class="dh-param-fill" id="dh-diff-fill" style="width:55%;background:linear-gradient(90deg,var(--accent2),var(--purple))"></div></div>
-                            <div class="dh-param-range"><span>40T</span><span>60T</span><span>80T</span><span>100T</span><span>120T</span></div>
+                            <div class="dh-param-range" id="dh-hash-range"><span>40T</span><span>250T</span><span>500T</span><span>750T</span><span>1000T</span></div>
                         </div>
 
                         <div class="dh-param-card">
@@ -5241,6 +5245,65 @@
         } catch (_) {}
         if (!window.dhPriceMode) window.dhPriceMode = 'btc';
 
+        // === Hash card modes (DIFF ⇄ PR) ===
+        // Same idea as PRICE_MODES — toggle the second card between
+        // network "difficulty" (actually hashrate stored on
+        // #net-difficulty) and pool reward (#net-hashrate). Both source
+        // IDs are misnamed in the legacy app but the data is correct.
+        const HASH_MODES = {
+            diff: {
+                sourceId: 'net-difficulty',  // contains "955.3 EH/s"
+                min: 40, max: 1000,
+                rangeHtml: '<span>40T</span><span>250T</span><span>500T</span><span>750T</span><span>1000T</span>',
+                // Strip unit from source text and append "T" for display
+                formatValue: (text) => {
+                    const m = String(text).match(/-?\d+(?:\.\d+)?/);
+                    return m ? m[0] + 'T' : text;
+                },
+                icon: '📊',
+                iconClass: 'dh-param-icon dh-param-icon--diff',
+                label: 'Network Difficulty (T)',
+                fillBg: 'linear-gradient(90deg, var(--accent2), var(--purple))',
+            },
+            pr: {
+                sourceId: 'net-hashrate',  // contains "47 PR"
+                min: 0, max: 100,
+                rangeHtml: '<span>0</span><span>25</span><span>50</span><span>75</span><span>100</span>',
+                formatValue: (text) => text,  // already includes " PR"
+                icon: '⚡',
+                iconClass: 'dh-param-icon dh-param-icon--pr',
+                label: 'Pool Reward (sat/TH)',
+                fillBg: 'linear-gradient(90deg, var(--green), var(--accent))',
+            },
+        };
+        try {
+            const stored = localStorage.getItem('dhHashMode');
+            if (stored === 'diff' || stored === 'pr') window.dhHashMode = stored;
+        } catch (_) {}
+        if (!window.dhHashMode) window.dhHashMode = 'diff';
+
+        window.setDhHashMode = function (mode) {
+            if (mode !== 'diff' && mode !== 'pr') return;
+            window.dhHashMode = mode;
+            try { localStorage.setItem('dhHashMode', mode); } catch (_) {}
+            const cfg = HASH_MODES[mode];
+            // Toggle button active state
+            document.querySelectorAll('.dh-pt-btn[data-hmode]').forEach(b => {
+                b.classList.toggle('active', b.dataset.hmode === mode);
+            });
+            // Card chrome
+            const icon = $('dh-hash-icon');
+            const label = $('dh-hash-label');
+            const range = $('dh-hash-range');
+            const fill = $('dh-diff-fill');
+            if (icon) { icon.textContent = cfg.icon; icon.className = cfg.iconClass; }
+            if (label) label.textContent = cfg.label;
+            if (range) range.innerHTML = cfg.rangeHtml;
+            if (fill) fill.style.background = cfg.fillBg;
+            // Refresh value immediately
+            updateHero();
+        };
+
         // Public toggle handler — wired from the card's BTC/GMT buttons
         window.setDhPriceMode = function (mode) {
             if (mode !== 'btc' && mode !== 'gmt') return;
@@ -5277,20 +5340,18 @@
                 if (fill && v != null) fill.style.width = clampPct(v, cfg.min, cfg.max).toFixed(1) + '%';
             }
 
-            // Network Difficulty — read from #net-difficulty (hidden helper).
-            // The app stores it raw (huge number); convert to T (1e12).
-            const diffText = readDom('net-difficulty');
-            if (diffText) {
-                let v = numFromText(diffText);
-                if (v != null) {
-                    // If the value is clearly raw (>1e10), convert to T
-                    if (v > 1e10) v = v / 1e12;
-                    const txt = v.toFixed(1) + 'T';
-                    if ($('dh-difficulty'))   $('dh-difficulty').textContent = txt;
-                    if ($('dh-diff-current')) $('dh-diff-current').textContent = txt;
-                    const fill = $('dh-diff-fill');
-                    if (fill) fill.style.width = clampPct(v, 40, 120).toFixed(1) + '%';
-                }
+            // Hash card (DIFF or PR) — mode-aware; mirrors whichever
+            // network metric the user picked into the same card slot.
+            const hashMode = window.dhHashMode || 'diff';
+            const hashCfg = HASH_MODES[hashMode] || HASH_MODES.diff;
+            const hashText = readDom(hashCfg.sourceId);
+            if (hashText) {
+                const formatted = hashCfg.formatValue(hashText);
+                if ($('dh-difficulty'))   $('dh-difficulty').textContent = formatted;
+                if ($('dh-diff-current')) $('dh-diff-current').textContent = formatted;
+                const v = numFromText(hashText);
+                const fill = $('dh-diff-fill');
+                if (fill && v != null) fill.style.width = clampPct(v, hashCfg.min, hashCfg.max).toFixed(1) + '%';
             }
 
             // Miner Power — read from #dash-miner (the canonical Miner KPI).
