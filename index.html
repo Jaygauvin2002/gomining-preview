@@ -19,10 +19,10 @@
     <link rel="manifest" href="pwa-manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
     <title>GMSim — GoMining NFT Simulator</title>
-    <link rel="stylesheet" href="css/main.css?v=20260502k">
-    <link rel="stylesheet" href="css/tokens.css?v=20260502k">
-    <link rel="stylesheet" href="css/components.css?v=20260502k">
-    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502k">
+    <link rel="stylesheet" href="css/main.css?v=20260502l">
+    <link rel="stylesheet" href="css/tokens.css?v=20260502l">
+    <link rel="stylesheet" href="css/components.css?v=20260502l">
+    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502l">
 </head>
 <body>
     <!-- =========================================================
@@ -3119,15 +3119,23 @@
                 if (day) {
                     const type = getRewardTypeLabel(day);
                     const color = getRewardTypeColor(day);
+                    // Use the day's stored prices when available (correct
+                    // historical conversion), otherwise the live state
+                    // prices (today's reality), and only fall back to a
+                    // hard-coded constant as last resort. The previous
+                    // 67000 / 0.3 hard-coded fallbacks distorted USD/GMT
+                    // conversions by ~10–15% when day.btcPrice was missing.
+                    const btcRef = day.btcPrice || state.btcPrice || 67000;
+                    const gmtRef = day.gmtPrice || state.gmtPrice || 0.3;
                     let valueText = '';
                     if (type === 'BTC') {
                         valueText = day.valueBtc.toFixed(8);
                     } else if (type === 'GMT') {
-                        const gmtGross = day.gmtIncome || day.valueBtc * (day.btcPrice || 67000) / (day.gmtPrice || 0.3);
+                        const gmtGross = day.gmtIncome || (day.valueBtc * btcRef / gmtRef);
                         const gmtFees = day.maintenanceGmt || 0;
                         valueText = (gmtGross - gmtFees).toFixed(2);
                     } else if (type === 'TH') {
-                        const thGained = day.valueBtc * (day.btcPrice || 67000) / 12.34 * 1.05;
+                        const thGained = day.valueBtc * btcRef / 12.34 * 1.05;
                         valueText = '+' + thGained.toFixed(3);
                     }
 
@@ -3175,7 +3183,9 @@
                 totalBtc += day.valueBtc;
                 const type = getRewardTypeLabel(day);
                 if (type === 'GMT') {
-                    const gmtGross = day.gmtIncome || day.valueBtc * (day.btcPrice || 67000) / (day.gmtPrice || 0.3);
+                    const btcRef = day.btcPrice || state.btcPrice || 67000;
+                    const gmtRef = day.gmtPrice || state.gmtPrice || 0.3;
+                    const gmtGross = day.gmtIncome || (day.valueBtc * btcRef / gmtRef);
                     const gmtFees = day.maintenanceGmt || 0;
                     totalGmtNet += (gmtGross - gmtFees);
                     totalGmtFees += gmtFees;
