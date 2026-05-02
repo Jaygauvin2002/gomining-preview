@@ -19,10 +19,10 @@
     <link rel="manifest" href="pwa-manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
     <title>GMSim — GoMining NFT Simulator</title>
-    <link rel="stylesheet" href="css/main.css?v=20260502g">
-    <link rel="stylesheet" href="css/tokens.css?v=20260502g">
-    <link rel="stylesheet" href="css/components.css?v=20260502g">
-    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502g">
+    <link rel="stylesheet" href="css/main.css?v=20260502h">
+    <link rel="stylesheet" href="css/tokens.css?v=20260502h">
+    <link rel="stylesheet" href="css/components.css?v=20260502h">
+    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502h">
 </head>
 <body>
     <!-- =========================================================
@@ -550,7 +550,6 @@
                                     <button type="button" class="dh-pt-btn active" data-pmode="btc" onclick="setDhPriceMode('btc')" title="BTC price">₿</button>
                                     <button type="button" class="dh-pt-btn" data-pmode="gmt" onclick="setDhPriceMode('gmt')" title="GMT price">G</button>
                                 </div>
-                                <span class="dh-param-value" id="dh-price-value">—</span>
                             </div>
                             <div class="dh-param-current" id="dh-price-current">—</div>
                             <div class="dh-param-track"><div class="dh-param-fill" id="dh-price-fill" style="width:50%"></div></div>
@@ -565,7 +564,7 @@
                                     <button type="button" class="dh-pt-btn dh-pt-btn--diff active" data-hmode="diff" onclick="setDhHashMode('diff')" title="Network difficulty">DIFF</button>
                                     <button type="button" class="dh-pt-btn dh-pt-btn--pr" data-hmode="pr" onclick="setDhHashMode('pr')" title="Pool reward">PR</button>
                                 </div>
-                                <span class="dh-param-value" id="dh-difficulty">—</span>
+                                <span class="dh-param-value" id="dh-difficulty" style="display:none;">—</span>
                             </div>
                             <div class="dh-param-current" id="dh-diff-current">—</div>
                             <div class="dh-param-track"><div class="dh-param-fill" id="dh-diff-fill" style="width:55%;background:linear-gradient(90deg,var(--accent2),var(--purple))"></div></div>
@@ -576,7 +575,7 @@
                             <div class="dh-param-head">
                                 <span class="dh-param-icon dh-param-icon--power">⛏</span>
                                 <span class="dh-param-label" data-i18n="dh_miner_power">Miner Power (TH/s)</span>
-                                <span class="dh-param-value" id="dh-miner-power">—</span>
+                                <span class="dh-param-value" id="dh-miner-power" style="display:none;">—</span>
                             </div>
                             <div class="dh-param-current" id="dh-power-current">—</div>
                             <div class="dh-param-track"><div class="dh-param-fill" id="dh-power-fill" style="width:30%;background:linear-gradient(90deg,var(--green),var(--accent))"></div></div>
@@ -587,7 +586,7 @@
                             <div class="dh-param-head">
                                 <span class="dh-param-icon dh-param-icon--wallet" id="dh-wallet-icon">💼</span>
                                 <span class="dh-param-label">Wallet</span>
-                                <span class="dh-param-value" id="dh-wallet-value">—</span>
+                                <span class="dh-param-value" id="dh-wallet-value" style="display:none;">—</span>
                                 <div class="dh-price-toggle dh-wallet-toggle" role="tablist" aria-label="Wallet currency">
                                     <button type="button" class="dh-pt-btn active" data-wmode="btc" onclick="setDhWalletMode('btc')" title="Wallet in BTC">₿</button>
                                     <button type="button" class="dh-pt-btn" data-wmode="gmt" onclick="setDhWalletMode('gmt')" title="Wallet in GMT">G</button>
