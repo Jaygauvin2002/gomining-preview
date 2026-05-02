@@ -1235,6 +1235,8 @@ body.has-live-footer .main-content { padding-bottom: 64px; }
 .dh-pt-btn[data-wmode="btc"].active  { background: var(--accent-500); color: #1a1100; }
 .dh-pt-btn[data-wmode="gmt"].active  { background: var(--purple); color: #1a0033; }
 .dh-pt-btn[data-wmode="cash"].active { background: var(--green); color: #001a0a; }
+/* Profit period toggle (D / M / Y) — green to match the profit colour */
+.dh-pt-btn[data-period].active { background: var(--green); color: #001a0a; }
 .dh-param-label {
     flex: 1;
     font-size: 0.78em;
