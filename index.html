@@ -19,10 +19,10 @@
     <link rel="manifest" href="pwa-manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
     <title>GMSim — GoMining NFT Simulator</title>
-    <link rel="stylesheet" href="css/main.css?v=20260502e">
-    <link rel="stylesheet" href="css/tokens.css?v=20260502e">
-    <link rel="stylesheet" href="css/components.css?v=20260502e">
-    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502e">
+    <link rel="stylesheet" href="css/main.css?v=20260502f">
+    <link rel="stylesheet" href="css/tokens.css?v=20260502f">
+    <link rel="stylesheet" href="css/components.css?v=20260502f">
+    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502f">
 </head>
 <body>
     <!-- =========================================================
@@ -581,6 +581,20 @@
                             <div class="dh-param-current" id="dh-power-current">—</div>
                             <div class="dh-param-track"><div class="dh-param-fill" id="dh-power-fill" style="width:30%;background:linear-gradient(90deg,var(--green),var(--accent))"></div></div>
                             <div class="dh-param-range"><span>100 TH/s</span><span>1k</span><span>2.5k</span><span>3.5k</span><span>5,000 TH/s</span></div>
+                        </div>
+
+                        <div class="dh-param-card">
+                            <div class="dh-param-head">
+                                <span class="dh-param-icon dh-param-icon--wallet" id="dh-wallet-icon">💼</span>
+                                <span class="dh-param-label">Wallet</span>
+                                <div class="dh-price-toggle dh-wallet-toggle" role="tablist" aria-label="Wallet currency">
+                                    <button type="button" class="dh-pt-btn active" data-wmode="btc" onclick="setDhWalletMode('btc')" title="Wallet in BTC">₿</button>
+                                    <button type="button" class="dh-pt-btn" data-wmode="gmt" onclick="setDhWalletMode('gmt')" title="Wallet in GMT">G</button>
+                                    <button type="button" class="dh-pt-btn" data-wmode="cash" onclick="setDhWalletMode('cash')" title="Wallet in USD">$</button>
+                                </div>
+                                <span class="dh-param-value" id="dh-wallet-value">—</span>
+                            </div>
+                            <div class="dh-param-current" id="dh-wallet-current">—</div>
                         </div>
                     </div>
 
@@ -5288,6 +5302,30 @@
         } catch (_) {}
         if (!window.dhHashMode) window.dhHashMode = 'diff';
 
+        // === Wallet card mode (BTC / GMT / $) ===
+        // Delegates to the legacy `setWalletMode` (which owns
+        // state.walletMode + #dash-wallet text). We just track the
+        // hero's local visual state and persist it.
+        try {
+            const stored = localStorage.getItem('dhWalletMode');
+            if (['btc', 'gmt', 'cash'].includes(stored)) window.dhWalletMode = stored;
+        } catch (_) {}
+        if (!window.dhWalletMode) window.dhWalletMode = 'btc';
+
+        window.setDhWalletMode = function (mode) {
+            if (!['btc', 'gmt', 'cash'].includes(mode)) return;
+            window.dhWalletMode = mode;
+            try { localStorage.setItem('dhWalletMode', mode); } catch (_) {}
+            document.querySelectorAll('.dh-pt-btn[data-wmode]').forEach(b => {
+                b.classList.toggle('active', b.dataset.wmode === mode);
+            });
+            // Hand off to the legacy global to update state + #dash-wallet
+            if (typeof window.setWalletMode === 'function') {
+                try { window.setWalletMode(mode); } catch {}
+            }
+            updateHero();
+        };
+
         // === Profit Card period (Day / Month / Year) ===
         // Switches the big "Net Profit" number between today's gain
         // (#dash-today), the monthly estimate (#dash-month), or yearly
@@ -5464,6 +5502,14 @@
             if (roiText && $('dh-roi-period')) {
                 $('dh-roi-period').textContent = roiText;
             }
+
+            // Wallet — mirrors #dash-wallet (whose currency is owned by
+            // the legacy setWalletMode that the hero toggle delegates to)
+            const walletText = readDom('dash-wallet');
+            if (walletText) {
+                if ($('dh-wallet-value'))   $('dh-wallet-value').textContent = walletText;
+                if ($('dh-wallet-current')) $('dh-wallet-current').textContent = walletText;
+            }
         }
 
         // --- Mini ROI timeline chart on canvas ---
@@ -5549,6 +5595,9 @@
                 }
                 if (window.dhProfitPeriod && window.dhProfitPeriod !== 'day') {
                     window.setDhProfitPeriod(window.dhProfitPeriod);
+                }
+                if (window.dhWalletMode && window.dhWalletMode !== 'btc') {
+                    window.setDhWalletMode(window.dhWalletMode);
                 }
             } catch (_) {}
         }, 200);
