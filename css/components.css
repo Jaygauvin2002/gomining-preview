@@ -1387,6 +1387,19 @@ body.has-live-footer .main-content { padding-bottom: 64px; }
     display: flex;
     gap: 4px;
 }
+/* Staleness indicator inside the Reward History header */
+.dh-history-staleness {
+    font-size: var(--fs-xs);
+    color: var(--text-dim);
+    letter-spacing: var(--ls-snug);
+    padding: 3px 9px;
+    border-radius: var(--r-pill);
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border-soft);
+}
+.dh-history-staleness.fresh   { color: var(--green); border-color: var(--success-line); background: var(--success-soft); }
+.dh-history-staleness.warn    { color: var(--accent-400); border-color: var(--accent-line); background: var(--accent-soft); }
+.dh-history-staleness.stale   { color: var(--red); border-color: var(--danger-line); background: var(--danger-soft); }
 .dh-tl-arrow {
     width: 26px;
     height: 26px;

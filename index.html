@@ -19,10 +19,10 @@
     <link rel="manifest" href="pwa-manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
     <title>GMSim — GoMining NFT Simulator</title>
-    <link rel="stylesheet" href="css/main.css?v=20260502l">
-    <link rel="stylesheet" href="css/tokens.css?v=20260502l">
-    <link rel="stylesheet" href="css/components.css?v=20260502l">
-    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502l">
+    <link rel="stylesheet" href="css/main.css?v=20260502m">
+    <link rel="stylesheet" href="css/tokens.css?v=20260502m">
+    <link rel="stylesheet" href="css/components.css?v=20260502m">
+    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502m">
 </head>
 <body>
     <!-- =========================================================
@@ -632,6 +632,7 @@
                         <div class="dh-timeline-card" id="dash-history-section">
                             <div class="dh-timeline-head">
                                 <h3 class="dh-timeline-title" data-i18n="sec_reward_history">Reward History</h3>
+                                <span class="dh-history-staleness" id="dh-history-staleness" style="display:none;"></span>
                             </div>
                             <div id="dash-history-chart" style="position:relative;flex:1;min-height:200px;">
                                 <div id="dash-history-empty" style="text-align:center;padding:36px 20px;color:var(--text-dim);">
@@ -3895,13 +3896,22 @@
         // ===== ANOMALY DETECTION =====
         function detectAnomalies(history) {
             if (!history || history.length < 5) return [];
-            const values = history.map(d => d.valueBtc).filter(v => v > 0);
-            const avg = values.reduce((a, b) => a + b, 0) / values.length;
+            // Anomaly = the day's value diverges from the median by more
+            // than the threshold below. Median is more robust than mean
+            // when a few extreme days (TH-reinvest with valueBtc 0, or
+            // empty / promo days) skew the average. Threshold 50% — BTC
+            // mining variance of 30–40% day-to-day is normal pool luck,
+            // we only want to flag genuine outliers.
+            const ANOMALY_THRESHOLD = 0.5;
+            const values = history.map(d => d.valueBtc).filter(v => v > 0).sort((a, b) => a - b);
+            if (values.length < 3) return [];
+            const median = values[Math.floor(values.length / 2)];
+            if (!median) return [];
             const anomalies = [];
             history.forEach(day => {
                 if (!day.valueBtc || day.valueBtc === 0) return;
-                const ecart = (day.valueBtc - avg) / avg;
-                if (Math.abs(ecart) > 0.2) {
+                const ecart = (day.valueBtc - median) / median;
+                if (Math.abs(ecart) > ANOMALY_THRESHOLD) {
                     anomalies.push({
                         date: day.date,
                         value: day.valueBtc,
@@ -5512,6 +5522,31 @@
             if (walletText) {
                 if ($('dh-wallet-value'))   $('dh-wallet-value').textContent = walletText;
                 if ($('dh-wallet-current')) $('dh-wallet-current').textContent = walletText;
+            }
+
+            // Reward history staleness pill — shows how old the latest
+            // reward day is. Encourages the user to re-sync from the
+            // GoMining rewards page when data falls behind.
+            const stalePill = $('dh-history-staleness');
+            if (stalePill) {
+                const hist = window.state?.rewardHistory;
+                if (hist && hist.length > 0) {
+                    const sorted = [...hist].sort((a, b) => String(a.date).localeCompare(String(b.date)));
+                    const latest = sorted[sorted.length - 1].date;
+                    const today = new Date().toISOString().substring(0, 10);
+                    const days = Math.max(0, Math.round(
+                        (new Date(today) - new Date(latest)) / (24 * 3600 * 1000)
+                    ));
+                    let label, klass;
+                    if (days <= 1)      { label = 'Up to date · ' + latest;             klass = 'fresh'; }
+                    else if (days <= 3) { label = 'Last sync: ' + days + ' days ago';   klass = 'warn'; }
+                    else                { label = '⚠ ' + days + ' days behind — re-sync needed'; klass = 'stale'; }
+                    stalePill.textContent = label;
+                    stalePill.className = 'dh-history-staleness ' + klass;
+                    stalePill.style.display = '';
+                } else {
+                    stalePill.style.display = 'none';
+                }
             }
         }
 
