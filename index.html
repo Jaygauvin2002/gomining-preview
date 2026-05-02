@@ -19,10 +19,10 @@
     <link rel="manifest" href="pwa-manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
     <title>GMSim — GoMining NFT Simulator</title>
-    <link rel="stylesheet" href="css/main.css?v=20260502r">
-    <link rel="stylesheet" href="css/tokens.css?v=20260502r">
-    <link rel="stylesheet" href="css/components.css?v=20260502r">
-    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502r">
+    <link rel="stylesheet" href="css/main.css?v=20260502s">
+    <link rel="stylesheet" href="css/tokens.css?v=20260502s">
+    <link rel="stylesheet" href="css/components.css?v=20260502s">
+    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502s">
 </head>
 <body>
     <!-- =========================================================
@@ -633,7 +633,9 @@
                             <div class="dh-timeline-head">
                                 <h3 class="dh-timeline-title" data-i18n="sec_reward_history">Reward History</h3>
                                 <span class="dh-history-staleness" id="dh-history-staleness" style="display:none;"></span>
+                                <button type="button" onclick="window.dumpRewardHistory()" title="Dump raw rewardHistory JSON for debugging" style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-dim);padding:5px 10px;border-radius:8px;font-size:0.7em;cursor:pointer;font-weight:600;letter-spacing:0.05em;">🐞 DUMP</button>
                             </div>
+                            <div id="dh-history-debug" style="display:none;margin:8px 0;"></div>
                             <div id="dash-history-chart" style="position:relative;flex:1;min-height:200px;">
                                 <div id="dash-history-empty" style="text-align:center;padding:36px 20px;color:var(--text-dim);">
                                     <div style="font-size:2em;margin-bottom:10px;">📅</div>
@@ -5367,6 +5369,40 @@
             if (stored === 'diff' || stored === 'pr') window.dhHashMode = stored;
         } catch (_) {}
         if (!window.dhHashMode) window.dhHashMode = 'diff';
+
+        // === Debug: dump raw reward history as copyable JSON ===
+        // Surfaces stored entry shapes so we can verify field names and
+        // values without needing DevTools. Click the 🐞 DUMP button next
+        // to "Reward History" header to reveal a textarea with the JSON
+        // (pretty-printed). Copy/paste back here to debug calc bugs.
+        window.dumpRewardHistory = function () {
+            const container = document.getElementById('dh-history-debug');
+            if (!container) return;
+            // Toggle visibility
+            if (container.style.display === 'block') {
+                container.style.display = 'none';
+                return;
+            }
+            const hist = window.state?.rewardHistory || [];
+            // Limit to last 12 days for readability
+            const sliced = [...hist]
+                .sort((a, b) => String(a.date).localeCompare(String(b.date)))
+                .slice(-12);
+            const stateInfo = {
+                btcPrice: window.state?.btcPrice,
+                gmtPrice: window.state?.gmtPrice,
+                satPerTH: window.state?.satPerTH,
+                apiSatPerTH: window.state?.apiSatPerTH,
+                feeMode: window.state?.feeMode,
+                today: new Date().toISOString().substring(0, 10)
+            };
+            const dump = JSON.stringify({ state: stateInfo, rewardHistory_last12: sliced }, null, 2);
+            container.innerHTML = `
+                <div style="font-size:0.8em;color:var(--text-dim);margin-bottom:6px;">Raw stored values for the last 12 reward-history entries (paste this back to investigate):</div>
+                <textarea readonly onclick="this.select()" style="width:100%;min-height:240px;background:var(--bg-soft);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;font-family:ui-monospace,Menlo,monospace;font-size:0.78em;line-height:1.4;">${dump.replace(/</g, '&lt;')}</textarea>
+            `;
+            container.style.display = 'block';
+        };
 
         // === Wallet card mode (BTC / GMT / $) ===
         // Delegates to the legacy `setWalletMode` (which owns
