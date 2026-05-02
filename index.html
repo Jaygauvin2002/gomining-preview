@@ -19,10 +19,10 @@
     <link rel="manifest" href="pwa-manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
     <title>GMSim — GoMining NFT Simulator</title>
-    <link rel="stylesheet" href="css/main.css?v=20260502j">
-    <link rel="stylesheet" href="css/tokens.css?v=20260502j">
-    <link rel="stylesheet" href="css/components.css?v=20260502j">
-    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502j">
+    <link rel="stylesheet" href="css/main.css?v=20260502k">
+    <link rel="stylesheet" href="css/tokens.css?v=20260502k">
+    <link rel="stylesheet" href="css/components.css?v=20260502k">
+    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502k">
 </head>
 <body>
     <!-- =========================================================
@@ -629,18 +629,15 @@
                             </div>
                         </div>
 
-                        <div class="dh-timeline-card">
+                        <div class="dh-timeline-card" id="dash-history-section">
                             <div class="dh-timeline-head">
-                                <h3 class="dh-timeline-title" data-i18n="dh_roi_timeline">ROI Timeline</h3>
-                                <div class="dh-timeline-nav">
-                                    <button class="dh-tl-arrow" aria-label="Previous">‹</button>
-                                    <button class="dh-tl-arrow" aria-label="Next">›</button>
-                                </div>
+                                <h3 class="dh-timeline-title" data-i18n="sec_reward_history">Reward History</h3>
                             </div>
-                            <canvas id="dh-roi-canvas" class="dh-timeline-canvas"></canvas>
-                            <div class="dh-timeline-legend">
-                                <span class="dh-legend-item"><span class="dh-legend-dot" style="background:var(--accent)"></span> Cumulative profit (USD)</span>
-                                <span class="dh-legend-item"><span class="dh-legend-dot" style="background:var(--green);box-shadow:none;outline:1px dashed var(--green);outline-offset:-1px"></span> 7-day avg trend (linear)</span>
+                            <div id="dash-history-chart" style="position:relative;flex:1;min-height:200px;">
+                                <div id="dash-history-empty" style="text-align:center;padding:36px 20px;color:var(--text-dim);">
+                                    <div style="font-size:2em;margin-bottom:10px;">📅</div>
+                                    <div data-i18n="cal_empty">Sync your GoMining data to see your reward history calendar.</div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -879,16 +876,8 @@
             </div>
 
 
-            <!-- Reward Calendar -->
-            <div class="section" id="dash-history-section">
-                <h2 data-i18n="sec_reward_history">Reward History</h2>
-                <div id="dash-history-chart" style="position:relative;">
-                    <div id="dash-history-empty" style="text-align:center;padding:30px 20px;color:var(--text-dim);">
-                        <div style="font-size:2em;margin-bottom:10px;">📅</div>
-                        <div data-i18n="cal_empty">Sync your GoMining data to see your reward history calendar.</div>
-                    </div>
-                </div>
-            </div>
+            <!-- Reward Calendar moved into the hero (same IDs preserved
+                 there so the inline app keeps rendering into them). -->
 
         </div>
 
