@@ -19,10 +19,10 @@
     <link rel="manifest" href="pwa-manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
     <title>GMSim — GoMining NFT Simulator</title>
-    <link rel="stylesheet" href="css/main.css?v=20260502p">
-    <link rel="stylesheet" href="css/tokens.css?v=20260502p">
-    <link rel="stylesheet" href="css/components.css?v=20260502p">
-    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502p">
+    <link rel="stylesheet" href="css/main.css?v=20260502q">
+    <link rel="stylesheet" href="css/tokens.css?v=20260502q">
+    <link rel="stylesheet" href="css/components.css?v=20260502q">
+    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502q">
 </head>
 <body>
     <!-- =========================================================
@@ -3043,24 +3043,39 @@
         // (which mysteriously over-deducts by ~5–10 GMT — likely a hidden
         // withdraw fee folded into that field).
         function computeDayNetGmt(day) {
-            // Use the SAME formula the legacy validation table uses
-            // (line ~2997): netBTC = poolReward − c1 − c2. All three
-            // are stored per-day in BTC. Then convert net BTC to GMT
-            // using the day's stored prices. This matches GoMining's
-            // "Reward" column exactly because c1 and c2 ARE the
-            // electricity and service fees the API returns.
+            // GROSS comes from `day.gmtIncome` (= gmtIncomeBasedOnBtcIncome
+            // from the API). It's the gross GMT income for the day in the
+            // unit GMT. Falls back to derived poolReward × btc/gmt if
+            // gmtIncome is missing (older entries).
             //
-            // Earlier I tried recomputing fees from constants
-            // (electricity rate, efficiency, discount) — that drifted
-            // by ~10% per day. Trusting the stored API values is much
-            // more accurate.
+            // FEES come from the calcDailyReward constants formula using
+            // the day's stored gmtPrice + power + totalDiscount. We avoid
+            // the stored maintenanceGmt / c1+c2 because those are
+            // inflated on some days (API includes hidden withdraw fees).
+            //
+            // totalDiscount is stored as a fraction (0.0938 not 9.38).
             const btcP = day.btcPrice || state.btcPrice || 67000;
             const gmtP = day.gmtPrice || state.gmtPrice || 0.3;
+            const power = day.power || 0;
             if (!btcP || !gmtP) return 0;
-            const grossBtc = day.poolReward || 0;
-            const feesBtc = (day.c1 || 0) + (day.c2 || 0);
-            const netBtc = grossBtc - feesBtc;
-            return netBtc * btcP / gmtP;
+
+            let grossGmt;
+            if (typeof day.gmtIncome === 'number' && day.gmtIncome > 0) {
+                grossGmt = day.gmtIncome;
+            } else if (day.poolReward) {
+                grossGmt = day.poolReward * btcP / gmtP;
+            } else {
+                return 0;
+            }
+
+            if (!power) return grossGmt;
+            const ELEC_USD_KWH = 0.05;
+            const EFFICIENCY_W_TH = 15;
+            const discountMult = 1 - (day.totalDiscount || 0);
+            const c1Per = (ELEC_USD_KWH * 24 * EFFICIENCY_W_TH / gmtP / 1000) * discountMult;
+            const c2Per = (SERVICE_COST_PER_TH / gmtP) * discountMult;
+            const totalFees = (c1Per + c2Per) * power;
+            return grossGmt - totalFees;
         }
 
         function showDashboardCalendar(history) {
