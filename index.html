@@ -19,10 +19,10 @@
     <link rel="manifest" href="pwa-manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
     <title>GMSim — GoMining NFT Simulator</title>
-    <link rel="stylesheet" href="css/main.css?v=20260502m">
-    <link rel="stylesheet" href="css/tokens.css?v=20260502m">
-    <link rel="stylesheet" href="css/components.css?v=20260502m">
-    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502m">
+    <link rel="stylesheet" href="css/main.css?v=20260502n">
+    <link rel="stylesheet" href="css/tokens.css?v=20260502n">
+    <link rel="stylesheet" href="css/components.css?v=20260502n">
+    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502n">
 </head>
 <body>
     <!-- =========================================================
@@ -3031,6 +3031,33 @@
         }
 
         // ===== REWARD HISTORY CALENDAR =====
+        // Replicates GoMining's "Reward" column formula for a day's net
+        // GMT income. The displayed value matches what the user sees in
+        // their app.gomining.com rewards table.
+        //
+        //   gross GMT = poolReward (BTC) × btcPrice / gmtPrice
+        //   fees per TH (GMT) = (electricity + service) × (1 − discount)
+        //   net GMT = gross − fees × power
+        //
+        // This bypasses the API field `maintenanceForWithdrawInGmt`
+        // (which mysteriously over-deducts by ~5–10 GMT — likely a hidden
+        // withdraw fee folded into that field).
+        function computeDayNetGmt(day) {
+            const power = day.power || 0;
+            const discount = day.totalDiscount || 0;
+            const btcP = day.btcPrice || state.btcPrice || 67000;
+            const gmtP = day.gmtPrice || state.gmtPrice || 0.3;
+            if (!power || !btcP || !gmtP || !day.poolReward) return 0;
+            const ELEC_USD_KWH = 0.05;
+            const EFFICIENCY_W_TH = 15;
+            const discountMult = 1 - discount / 100;
+            const c1Per = (ELEC_USD_KWH * 24 * EFFICIENCY_W_TH / gmtP / 1000) * discountMult;
+            const c2Per = (SERVICE_COST_PER_TH / gmtP) * discountMult;
+            const totalFees = (c1Per + c2Per) * power;
+            const grossGmt = day.poolReward * btcP / gmtP;
+            return grossGmt - totalFees;
+        }
+
         function showDashboardCalendar(history) {
             if (!history || history.length < 1) return;
             const el = document.getElementById('dash-history-chart');
@@ -3120,21 +3147,22 @@
                 if (day) {
                     const type = getRewardTypeLabel(day);
                     const color = getRewardTypeColor(day);
-                    // Use the day's stored prices when available (correct
-                    // historical conversion), otherwise the live state
-                    // prices (today's reality), and only fall back to a
-                    // hard-coded constant as last resort. The previous
-                    // 67000 / 0.3 hard-coded fallbacks distorted USD/GMT
-                    // conversions by ~10–15% when day.btcPrice was missing.
                     const btcRef = day.btcPrice || state.btcPrice || 67000;
                     const gmtRef = day.gmtPrice || state.gmtPrice || 0.3;
                     let valueText = '';
                     if (type === 'BTC') {
                         valueText = day.valueBtc.toFixed(8);
                     } else if (type === 'GMT') {
-                        const gmtGross = day.gmtIncome || (day.valueBtc * btcRef / gmtRef);
-                        const gmtFees = day.maintenanceGmt || 0;
-                        valueText = (gmtGross - gmtFees).toFixed(2);
+                        // Match GoMining's "Reward" column directly:
+                        //   net = poolReward (BTC) × btc/gmt − fees
+                        //   fees per TH = (c1 + c2) computed via calcDailyReward
+                        //                 formula using the day's discount.
+                        // Earlier we used `gmtIncome − maintenanceGmt`, but
+                        // `maintenanceForWithdrawInGmt` from the API
+                        // includes a hidden withdraw fee on top of
+                        // electricity+service, so the result was 15–20×
+                        // smaller than what GoMining shows.
+                        valueText = computeDayNetGmt(day).toFixed(2);
                     } else if (type === 'TH') {
                         const thGained = day.valueBtc * btcRef / 12.34 * 1.05;
                         valueText = '+' + thGained.toFixed(3);
@@ -3184,12 +3212,15 @@
                 totalBtc += day.valueBtc;
                 const type = getRewardTypeLabel(day);
                 if (type === 'GMT') {
-                    const btcRef = day.btcPrice || state.btcPrice || 67000;
-                    const gmtRef = day.gmtPrice || state.gmtPrice || 0.3;
-                    const gmtGross = day.gmtIncome || (day.valueBtc * btcRef / gmtRef);
-                    const gmtFees = day.maintenanceGmt || 0;
-                    totalGmtNet += (gmtGross - gmtFees);
-                    totalGmtFees += gmtFees;
+                    // Same as per-cell: use the calcDailyReward-based
+                    // formula so totals match GoMining's table.
+                    const net = computeDayNetGmt(day);
+                    if (net != null) totalGmtNet += net;
+                    // Fees inferred = grossGmt − net for transparency
+                    const btcP = day.btcPrice || state.btcPrice || 67000;
+                    const gmtP = day.gmtPrice || state.gmtPrice || 0.3;
+                    const grossGmt = (day.poolReward || 0) * btcP / gmtP;
+                    totalGmtFees += Math.max(0, grossGmt - net);
                 }
             }
             html += `<div style="margin-top:12px;display:flex;flex-wrap:wrap;gap:20px;font-size:0.85em;">
