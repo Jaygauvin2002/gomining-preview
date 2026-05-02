@@ -544,13 +544,17 @@
 
                         <div class="dh-param-card">
                             <div class="dh-param-head">
-                                <span class="dh-param-icon dh-param-icon--btc">₿</span>
-                                <span class="dh-param-label" data-i18n="dh_btc_price">BTC Price (USD)</span>
-                                <span class="dh-param-value" id="dh-btc-price">—</span>
+                                <span class="dh-param-icon dh-param-icon--btc" id="dh-price-icon">₿</span>
+                                <span class="dh-param-label" id="dh-price-label" data-i18n="dh_btc_price">BTC Price (USD)</span>
+                                <div class="dh-price-toggle" role="tablist" aria-label="Price source">
+                                    <button type="button" class="dh-pt-btn active" data-pmode="btc" onclick="setDhPriceMode('btc')">BTC</button>
+                                    <button type="button" class="dh-pt-btn" data-pmode="gmt" onclick="setDhPriceMode('gmt')">GMT</button>
+                                </div>
+                                <span class="dh-param-value" id="dh-price-value">—</span>
                             </div>
-                            <div class="dh-param-current" id="dh-btc-current">—</div>
-                            <div class="dh-param-track"><div class="dh-param-fill" id="dh-btc-fill" style="width:50%"></div></div>
-                            <div class="dh-param-range"><span>$20,000</span><span>$40,000</span><span>$60,000</span><span>$80,000</span><span>$100,000</span></div>
+                            <div class="dh-param-current" id="dh-price-current">—</div>
+                            <div class="dh-param-track"><div class="dh-param-fill" id="dh-price-fill" style="width:50%"></div></div>
+                            <div class="dh-param-range" id="dh-price-range"><span>$20,000</span><span>$40,000</span><span>$60,000</span><span>$80,000</span><span>$100,000</span></div>
                         </div>
 
                         <div class="dh-param-card">
@@ -5206,15 +5210,71 @@
         };
         const clampPct = (n, lo, hi) => Math.max(0, Math.min(100, ((n - lo) / (hi - lo)) * 100));
 
+        // BTC ⇄ GMT toggle — mirrors whichever price the user is interested in
+        // into the same hero card. Persisted across sessions.
+        const PRICE_MODES = {
+            btc: {
+                sourceId: 'btc-price',
+                min: 20000,
+                max: 100000,
+                rangeHtml: '<span>$20,000</span><span>$40,000</span><span>$60,000</span><span>$80,000</span><span>$100,000</span>',
+                icon: '₿',
+                iconClass: 'dh-param-icon dh-param-icon--btc',
+                label: 'BTC Price (USD)',
+                fillBg: '',  // empty = use CSS default (amber)
+            },
+            gmt: {
+                sourceId: 'gmt-price',
+                min: 0,
+                max: 0.20,
+                rangeHtml: '<span>$0.00</span><span>$0.05</span><span>$0.10</span><span>$0.15</span><span>$0.20</span>',
+                icon: 'G',
+                iconClass: 'dh-param-icon dh-param-icon--gmt',
+                label: 'GMT Price (USD)',
+                fillBg: 'linear-gradient(90deg, var(--purple), #d1a3ff)',
+            },
+        };
+        // Restore persisted mode on boot
+        try {
+            const stored = localStorage.getItem('dhPriceMode');
+            if (stored === 'btc' || stored === 'gmt') window.dhPriceMode = stored;
+        } catch (_) {}
+        if (!window.dhPriceMode) window.dhPriceMode = 'btc';
+
+        // Public toggle handler — wired from the card's BTC/GMT buttons
+        window.setDhPriceMode = function (mode) {
+            if (mode !== 'btc' && mode !== 'gmt') return;
+            window.dhPriceMode = mode;
+            try { localStorage.setItem('dhPriceMode', mode); } catch (_) {}
+            const cfg = PRICE_MODES[mode];
+            // Toggle button active state
+            document.querySelectorAll('.dh-pt-btn').forEach(b => {
+                b.classList.toggle('active', b.dataset.pmode === mode);
+            });
+            // Card chrome — icon, label, range labels, fill colour
+            const icon = $('dh-price-icon');
+            const label = $('dh-price-label');
+            const range = $('dh-price-range');
+            const fill = $('dh-price-fill');
+            if (icon) { icon.textContent = cfg.icon; icon.className = cfg.iconClass; }
+            if (label) label.textContent = (window.t && window.t('dh_' + mode + '_price')) || cfg.label;
+            if (range) range.innerHTML = cfg.rangeHtml;
+            if (fill) fill.style.background = cfg.fillBg;
+            // Refresh the value immediately
+            updateHero();
+        };
+
         function updateHero() {
-            // BTC Price — read from #btc-price (the canonical Bitcoin KPI)
-            const btcText = readDom('btc-price');
-            if (btcText) {
-                if ($('dh-btc-price'))   $('dh-btc-price').textContent = btcText;
-                if ($('dh-btc-current')) $('dh-btc-current').textContent = btcText;
-                const v = numFromText(btcText);
-                const fill = $('dh-btc-fill');
-                if (fill && v != null) fill.style.width = clampPct(v, 20000, 100000).toFixed(1) + '%';
+            // Price (BTC or GMT) — mode-aware, reads from the canonical KPI
+            const mode = window.dhPriceMode || 'btc';
+            const cfg = PRICE_MODES[mode] || PRICE_MODES.btc;
+            const priceText = readDom(cfg.sourceId);
+            if (priceText) {
+                if ($('dh-price-value'))   $('dh-price-value').textContent = priceText;
+                if ($('dh-price-current')) $('dh-price-current').textContent = priceText;
+                const v = numFromText(priceText);
+                const fill = $('dh-price-fill');
+                if (fill && v != null) fill.style.width = clampPct(v, cfg.min, cfg.max).toFixed(1) + '%';
             }
 
             // Network Difficulty — read from #net-difficulty (hidden helper).
