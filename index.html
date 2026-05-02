@@ -19,10 +19,10 @@
     <link rel="manifest" href="pwa-manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
     <title>GMSim — GoMining NFT Simulator</title>
-    <link rel="stylesheet" href="css/main.css?v=20260502c">
-    <link rel="stylesheet" href="css/tokens.css?v=20260502c">
-    <link rel="stylesheet" href="css/components.css?v=20260502c">
-    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502c">
+    <link rel="stylesheet" href="css/main.css?v=20260502d">
+    <link rel="stylesheet" href="css/tokens.css?v=20260502d">
+    <link rel="stylesheet" href="css/components.css?v=20260502d">
+    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502d">
 </head>
 <body>
     <!-- =========================================================
@@ -588,8 +588,13 @@
                     <div class="dh-col dh-col--profit">
                         <div class="dh-profit-card">
                             <div class="dh-profit-head">
-                                <h3 class="dh-profit-title" data-i18n="dh_profit_card">Profit Card</h3>
-                                <span class="dh-profit-sub" data-i18n="dh_estimated">Estimated Profit & ROI</span>
+                                <h3 class="dh-profit-title">Profit Card</h3>
+                                <div class="dh-price-toggle dh-period-toggle" role="tablist" aria-label="Profit period">
+                                    <button type="button" class="dh-pt-btn active" data-period="day" onclick="setDhProfitPeriod('day')" title="Daily profit">D</button>
+                                    <button type="button" class="dh-pt-btn" data-period="month" onclick="setDhProfitPeriod('month')" title="Monthly profit">M</button>
+                                    <button type="button" class="dh-pt-btn" data-period="year" onclick="setDhProfitPeriod('year')" title="Yearly profit">Y</button>
+                                </div>
+                                <span class="dh-profit-sub" id="dh-profit-sub">Today's profit</span>
                             </div>
                             <div class="dh-profit-hero">
                                 <span class="dh-profit-label" data-i18n="dh_net_profit">Net Profit:</span>
@@ -5282,6 +5287,56 @@
         } catch (_) {}
         if (!window.dhHashMode) window.dhHashMode = 'diff';
 
+        // === Profit Card period (Day / Month / Year) ===
+        // Switches the big "Net Profit" number between today's gain
+        // (#dash-today), the monthly estimate (#dash-month), or yearly
+        // (= monthly × 12). Persisted across sessions.
+        const PROFIT_PERIODS = {
+            day:   { sub: 'Today\'s profit',   label: 'Net Profit:' },
+            month: { sub: 'Monthly estimate',  label: 'Monthly Net:' },
+            year:  { sub: 'Yearly estimate',   label: 'Yearly Net:' },
+        };
+        try {
+            const stored = localStorage.getItem('dhProfitPeriod');
+            if (PROFIT_PERIODS[stored]) window.dhProfitPeriod = stored;
+        } catch (_) {}
+        if (!window.dhProfitPeriod) window.dhProfitPeriod = 'day';
+
+        window.setDhProfitPeriod = function (period) {
+            if (!PROFIT_PERIODS[period]) return;
+            window.dhProfitPeriod = period;
+            try { localStorage.setItem('dhProfitPeriod', period); } catch (_) {}
+            // Toggle button active state
+            document.querySelectorAll('.dh-pt-btn[data-period]').forEach(b => {
+                b.classList.toggle('active', b.dataset.period === period);
+            });
+            // Sub-title text
+            const sub = $('dh-profit-sub');
+            if (sub) sub.textContent = PROFIT_PERIODS[period].sub;
+            // Header label ("Net Profit:" / "Monthly Net:" / "Yearly Net:")
+            const lbl = document.querySelector('.dh-profit-label');
+            if (lbl) lbl.textContent = PROFIT_PERIODS[period].label;
+            updateHero();
+        };
+
+        // Multiply the numeric portion of a formatted value while
+        // preserving its prefix/suffix (e.g. "$3.67" × 12 → "$44.04",
+        // "+0.00012 BTC" × 12 → "+0.00144 BTC").
+        function multiplyDisplayValue(text, multiplier) {
+            if (!text) return null;
+            return String(text).replace(/-?[\d,]+(?:\.\d+)?/, (m) => {
+                const cleaned = m.replace(/,/g, '');
+                const v = parseFloat(cleaned);
+                if (isNaN(v)) return m;
+                const result = v * multiplier;
+                const decimals = m.includes('.') ? m.split('.')[1].length : 2;
+                return result.toLocaleString(undefined, {
+                    minimumFractionDigits: decimals,
+                    maximumFractionDigits: decimals,
+                });
+            });
+        }
+
         window.setDhHashMode = function (mode) {
             if (mode !== 'diff' && mode !== 'pr') return;
             window.dhHashMode = mode;
@@ -5374,18 +5429,36 @@
                 if (fill && v != null) fill.style.width = clampPct(v, 100, 5000).toFixed(1) + '%';
             }
 
-            // Net Profit hero — prefer today's gain, then monthly
-            const profitText = readDom('dash-today') || readDom('dash-month') || null;
-            if (profitText && $('dh-net-profit')) {
-                $('dh-net-profit').textContent = profitText;
+            // Net Profit hero — period-aware (Day / Month / Year toggle).
+            // Monthly is the most reliable source (#dash-month is always
+            // populated by formatProfit(r.netBtc * 30, ...)). Daily and
+            // yearly are derived from it; daily falls back to #dash-today
+            // if the monthly cell isn't ready yet.
+            const period = window.dhProfitPeriod || 'day';
+            const monthlyText = readDom('dash-month');
+            let netProfitText = null;
+            if (period === 'day') {
+                netProfitText = readDom('dash-today')
+                    || (monthlyText && multiplyDisplayValue(monthlyText, 1 / 30));
+            } else if (period === 'month') {
+                netProfitText = monthlyText;
+            } else if (period === 'year') {
+                netProfitText = monthlyText && multiplyDisplayValue(monthlyText, 12);
+            }
+            if (netProfitText && $('dh-net-profit')) {
+                $('dh-net-profit').textContent = netProfitText;
             }
 
-            // Daily Payout — same as today's gain
-            if (profitText && $('dh-daily-payout')) {
-                $('dh-daily-payout').textContent = profitText;
+            // Daily Payout — always shows today's gain regardless of the
+            // hero's period toggle (it's a constant reference, not the
+            // big number). Falls back to monthly/30 if today is missing.
+            const dailyText = readDom('dash-today')
+                || (monthlyText && multiplyDisplayValue(monthlyText, 1 / 30));
+            if (dailyText && $('dh-daily-payout')) {
+                $('dh-daily-payout').textContent = dailyText;
             }
 
-            // ROI Period — pull from estimated annual ROI
+            // ROI Period — pull from estimated annual ROI %
             const roiText = readDom('dash-roi');
             if (roiText && $('dh-roi-period')) {
                 $('dh-roi-period').textContent = roiText;
@@ -5462,6 +5535,23 @@
             updateHero();
             drawTimeline();
         }
+
+        // Apply any persisted UI mode (BTC/GMT, DIFF/PR, D/M/Y) on boot
+        // so reload restores the user's last toggle position visually.
+        setTimeout(() => {
+            try {
+                if (window.dhPriceMode && window.dhPriceMode !== 'btc') {
+                    window.setDhPriceMode(window.dhPriceMode);
+                }
+                if (window.dhHashMode && window.dhHashMode !== 'diff') {
+                    window.setDhHashMode(window.dhHashMode);
+                }
+                if (window.dhProfitPeriod && window.dhProfitPeriod !== 'day') {
+                    window.setDhProfitPeriod(window.dhProfitPeriod);
+                }
+            } catch (_) {}
+        }, 200);
+
         setInterval(tick, 5000);
         setTimeout(tick, 1500);
 
