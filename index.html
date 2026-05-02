@@ -19,10 +19,10 @@
     <link rel="manifest" href="pwa-manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
     <title>GMSim — GoMining NFT Simulator</title>
-    <link rel="stylesheet" href="css/main.css">
-    <link rel="stylesheet" href="css/tokens.css">
-    <link rel="stylesheet" href="css/components.css">
-    <link rel="stylesheet" href="css/strategy-lab.css">
+    <link rel="stylesheet" href="css/main.css?v=20260502">
+    <link rel="stylesheet" href="css/tokens.css?v=20260502">
+    <link rel="stylesheet" href="css/components.css?v=20260502">
+    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502">
 </head>
 <body>
     <!-- =========================================================
@@ -545,16 +545,16 @@
                         <div class="dh-param-card">
                             <div class="dh-param-head">
                                 <span class="dh-param-icon dh-param-icon--btc" id="dh-price-icon">₿</span>
-                                <span class="dh-param-label" id="dh-price-label" data-i18n="dh_btc_price">BTC Price (USD)</span>
+                                <span class="dh-param-label" id="dh-price-label">BTC Price (USD)</span>
                                 <div class="dh-price-toggle" role="tablist" aria-label="Price source">
-                                    <button type="button" class="dh-pt-btn active" data-pmode="btc" onclick="setDhPriceMode('btc')">BTC</button>
-                                    <button type="button" class="dh-pt-btn" data-pmode="gmt" onclick="setDhPriceMode('gmt')">GMT</button>
+                                    <button type="button" class="dh-pt-btn active" data-pmode="btc" onclick="setDhPriceMode('btc')" title="BTC price">₿</button>
+                                    <button type="button" class="dh-pt-btn" data-pmode="gmt" onclick="setDhPriceMode('gmt')" title="GMT price">G</button>
                                 </div>
                                 <span class="dh-param-value" id="dh-price-value">—</span>
                             </div>
                             <div class="dh-param-current" id="dh-price-current">—</div>
                             <div class="dh-param-track"><div class="dh-param-fill" id="dh-price-fill" style="width:50%"></div></div>
-                            <div class="dh-param-range" id="dh-price-range"><span>$20,000</span><span>$40,000</span><span>$60,000</span><span>$80,000</span><span>$100,000</span></div>
+                            <div class="dh-param-range" id="dh-price-range"><span>$20,000</span><span>$50,000</span><span>$80,000</span><span>$110,000</span><span>$130,000</span></div>
                         </div>
 
                         <div class="dh-param-card">
@@ -5216,8 +5216,8 @@
             btc: {
                 sourceId: 'btc-price',
                 min: 20000,
-                max: 100000,
-                rangeHtml: '<span>$20,000</span><span>$40,000</span><span>$60,000</span><span>$80,000</span><span>$100,000</span>',
+                max: 130000,
+                rangeHtml: '<span>$20,000</span><span>$50,000</span><span>$80,000</span><span>$110,000</span><span>$130,000</span>',
                 icon: '₿',
                 iconClass: 'dh-param-icon dh-param-icon--btc',
                 label: 'BTC Price (USD)',
@@ -5226,8 +5226,8 @@
             gmt: {
                 sourceId: 'gmt-price',
                 min: 0,
-                max: 0.20,
-                rangeHtml: '<span>$0.00</span><span>$0.05</span><span>$0.10</span><span>$0.15</span><span>$0.20</span>',
+                max: 0.50,
+                rangeHtml: '<span>$0.00</span><span>$0.10</span><span>$0.20</span><span>$0.35</span><span>$0.50</span>',
                 icon: 'G',
                 iconClass: 'dh-param-icon dh-param-icon--gmt',
                 label: 'GMT Price (USD)',
