@@ -19,10 +19,10 @@
     <link rel="manifest" href="pwa-manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
     <title>GMSim — GoMining NFT Simulator</title>
-    <link rel="stylesheet" href="css/main.css?v=20260502i">
-    <link rel="stylesheet" href="css/tokens.css?v=20260502i">
-    <link rel="stylesheet" href="css/components.css?v=20260502i">
-    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502i">
+    <link rel="stylesheet" href="css/main.css?v=20260502j">
+    <link rel="stylesheet" href="css/tokens.css?v=20260502j">
+    <link rel="stylesheet" href="css/components.css?v=20260502j">
+    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502j">
 </head>
 <body>
     <!-- =========================================================
@@ -639,8 +639,8 @@
                             </div>
                             <canvas id="dh-roi-canvas" class="dh-timeline-canvas"></canvas>
                             <div class="dh-timeline-legend">
-                                <span class="dh-legend-item"><span class="dh-legend-dot" style="background:var(--accent)"></span> <span data-i18n="dh_cumulative">Cumulative Profit</span></span>
-                                <span class="dh-legend-item"><span class="dh-legend-dot" style="background:var(--green)"></span> <span data-i18n="dh_breakeven">Initial Investment Breakeven</span></span>
+                                <span class="dh-legend-item"><span class="dh-legend-dot" style="background:var(--accent)"></span> Cumulative profit (USD)</span>
+                                <span class="dh-legend-item"><span class="dh-legend-dot" style="background:var(--green);box-shadow:none;outline:1px dashed var(--green);outline-offset:-1px"></span> 7-day avg trend (linear)</span>
                             </div>
                         </div>
                     </div>
@@ -1539,6 +1539,11 @@
             costPerTH: 0, // upgrade cost per TH from /nft/get-power-upgrade-info (extension sync)
             feeMode: 'gmt' // 'gmt' = pay fees in GMT (token discount applies) | 'btc' = pay in BTC (no token discount)
         };
+        // Expose `state` on window so the redesign hero scripts (declared
+        // in a separate <script> block at the end of body) can read
+        // rewardHistory / btcPrice / gmtPrice for real data charts.
+        // Same object reference, so live mutations stay in sync.
+        window.state = state;
 
         const FEE_MODE_KEY = 'gomining_fee_mode';
 
@@ -5511,7 +5516,13 @@
             }
         }
 
-        // --- Mini ROI timeline chart on canvas ---
+        // --- Real ROI timeline: cumulative USD profit per day ---
+        // Reads window.state.rewardHistory (exposed by the inline app
+        // script) and computes the daily NET profit in USD:
+        //     gross_btc * btcPrice  −  fees_gmt * gmtPrice
+        // Then plots the cumulative sum. Empty state shown when there's
+        // not enough history yet. The 30-day moving average is drawn as
+        // a faint reference line.
         function drawTimeline() {
             const c = $('dh-roi-canvas');
             if (!c) return;
@@ -5524,56 +5535,149 @@
             ctx.scale(dpr, dpr);
             ctx.clearRect(0, 0, cssW, cssH);
 
-            // Grid
+            const PAD_L = 10, PAD_R = 14, PAD_T = 24, PAD_B = 18;
+            const W = cssW - PAD_L - PAD_R;
+            const H = cssH - PAD_T - PAD_B;
+
+            const s = window.state;
+            const history = s?.rewardHistory;
+            const btcPrice = s?.btcPrice || 0;
+            const gmtPrice = s?.gmtPrice || 0;
+            const feeMode = s?.feeMode || 'gmt';
+
+            // Empty / waiting state
+            if (!history || history.length < 2 || !btcPrice) {
+                ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                ctx.font = '12px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Waiting for reward history…', cssW / 2, cssH / 2 - 4);
+                ctx.fillStyle = 'rgba(255,255,255,0.25)';
+                ctx.font = '11px -apple-system, BlinkMacSystemFont, sans-serif';
+                ctx.fillText('Sync your GoMining data via the extension', cssW / 2, cssH / 2 + 12);
+                return;
+            }
+
+            // Sort ascending by date string (YYYY-MM-DD sortable)
+            const sorted = [...history]
+                .filter(h => h && h.date && (h.poolReward != null || h.netBtc != null))
+                .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+
+            if (sorted.length < 2) {
+                ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                ctx.font = '12px -apple-system, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Need at least 2 days of history', cssW / 2, cssH / 2);
+                return;
+            }
+
+            // Per-day net USD = (poolReward - fees in BTC equivalent) × prices
+            // poolReward is in BTC; feesGmt is in GMT. Subtract appropriate.
+            let cumulative = 0;
+            const points = sorted.map(h => {
+                const grossBtc = h.poolReward || 0;
+                const feesGmt = h.feesGmt || 0;
+                const grossUsd = grossBtc * btcPrice;
+                const feesUsd = feesGmt * gmtPrice;
+                const netUsd = grossUsd - feesUsd;
+                cumulative += netUsd;
+                return { date: h.date, day: netUsd, value: cumulative };
+            });
+
+            // Y-axis bounds (always include 0 so the floor is visible)
+            const values = points.map(p => p.value);
+            const minV = Math.min(0, ...values);
+            const maxV = Math.max(...values);
+            const range = (maxV - minV) || 1;
+
+            // Grid (4 horizontal lines)
             ctx.strokeStyle = 'rgba(255,255,255,0.04)';
             ctx.lineWidth = 1;
-            for (let i = 0; i < 5; i++) {
-                const y = (cssH / 4) * i;
-                ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(cssW, y); ctx.stroke();
+            for (let i = 0; i <= 4; i++) {
+                const y = PAD_T + (H / 4) * i;
+                ctx.beginPath();
+                ctx.moveTo(PAD_L, y);
+                ctx.lineTo(cssW - PAD_R, y);
+                ctx.stroke();
             }
 
-            // Synthetic data — a smooth growth curve based on rewardHistory length.
-            // If real history exists, the inline app already renders rich charts
-            // in the detail sections below; this is a hero teaser.
-            const n = (window.state?.rewardHistory?.length) || 24;
-            const points = [];
-            for (let i = 0; i < n; i++) {
-                const t = i / (n - 1);
-                // Compound growth shape, slightly noisy
-                const v = Math.pow(t, 1.7) + Math.sin(t * 6) * 0.03;
-                points.push(v);
+            // Zero-line emphasis (in case minV < 0 from net negative days)
+            if (minV < 0) {
+                const zeroY = PAD_T + H - ((0 - minV) / range) * H;
+                ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+                ctx.beginPath();
+                ctx.moveTo(PAD_L, zeroY);
+                ctx.lineTo(cssW - PAD_R, zeroY);
+                ctx.stroke();
             }
 
-            // Cumulative profit line (accent)
+            // Cumulative profit curve
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
             ctx.strokeStyle = '#f7931a';
             ctx.lineWidth = 2;
             ctx.beginPath();
-            points.forEach((v, i) => {
-                const x = (cssW / (points.length - 1)) * i;
-                const y = cssH - 16 - v * (cssH - 32);
-                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            points.forEach((p, i) => {
+                const x = PAD_L + (W / (points.length - 1)) * i;
+                const y = PAD_T + H - ((p.value - minV) / range) * H;
+                if (i === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
             });
             ctx.stroke();
-            // Fill under the curve
-            ctx.lineTo(cssW, cssH);
-            ctx.lineTo(0, cssH);
+
+            // Filled gradient below curve
+            ctx.lineTo(cssW - PAD_R, PAD_T + H);
+            ctx.lineTo(PAD_L, PAD_T + H);
             ctx.closePath();
-            const grad = ctx.createLinearGradient(0, 0, 0, cssH);
-            grad.addColorStop(0, 'rgba(247,147,26,0.20)');
+            const grad = ctx.createLinearGradient(0, PAD_T, 0, PAD_T + H);
+            grad.addColorStop(0, 'rgba(247,147,26,0.22)');
             grad.addColorStop(1, 'rgba(247,147,26,0)');
             ctx.fillStyle = grad;
             ctx.fill();
 
-            // Breakeven horizontal line (green)
-            ctx.strokeStyle = '#3fb950';
-            ctx.setLineDash([4, 5]);
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            const beY = cssH - 16 - 0.55 * (cssH - 32);
-            ctx.moveTo(0, beY);
-            ctx.lineTo(cssW, beY);
-            ctx.stroke();
-            ctx.setLineDash([]);
+            // 7-day rolling average DAILY profit drawn as a faint
+            // green dashed reference line — uses the SAME y-axis as the
+            // cumulative curve, scaled by multiplying days × rolling
+            // avg, so it visualises a "linear projection from average".
+            if (points.length >= 3) {
+                const win = Math.min(7, points.length);
+                const recent = points.slice(-win);
+                const avgDay = recent.reduce((acc, p) => acc + p.day, 0) / recent.length;
+                if (avgDay !== 0) {
+                    ctx.strokeStyle = '#3fb950';
+                    ctx.setLineDash([4, 5]);
+                    ctx.lineWidth = 1.4;
+                    ctx.beginPath();
+                    points.forEach((p, i) => {
+                        const x = PAD_L + (W / (points.length - 1)) * i;
+                        // What cumulative would have been if every day equalled avgDay
+                        const lineV = avgDay * (i + 1);
+                        const y = PAD_T + H - ((lineV - minV) / range) * H;
+                        if (i === 0) ctx.moveTo(x, y);
+                        else ctx.lineTo(x, y);
+                    });
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                }
+            }
+
+            // Annotation: total cumulative + days
+            const last = points[points.length - 1];
+            const sign = last.value >= 0 ? '+' : '−';
+            const totalLabel = sign + '$' + Math.abs(last.value)
+                .toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+            ctx.textAlign = 'right';
+            ctx.fillStyle = '#f7931a';
+            ctx.font = 'bold 13px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.fillText(totalLabel, cssW - PAD_R - 4, PAD_T - 8);
+
+            ctx.fillStyle = 'rgba(255,255,255,0.42)';
+            ctx.font = '10px -apple-system, sans-serif';
+            ctx.textAlign = 'left';
+            ctx.fillText(
+                points.length + ' days · ' + (sorted[0].date) + ' → ' + (sorted[sorted.length - 1].date),
+                PAD_L + 4, PAD_T - 8
+            );
         }
 
         // Tick — update both hero values and the timeline
