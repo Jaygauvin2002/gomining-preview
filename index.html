@@ -19,10 +19,10 @@
     <link rel="manifest" href="pwa-manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
     <title>GMSim — GoMining NFT Simulator</title>
-    <link rel="stylesheet" href="css/main.css?v=20260502s">
-    <link rel="stylesheet" href="css/tokens.css?v=20260502s">
-    <link rel="stylesheet" href="css/components.css?v=20260502s">
-    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502s">
+    <link rel="stylesheet" href="css/main.css?v=20260502t">
+    <link rel="stylesheet" href="css/tokens.css?v=20260502t">
+    <link rel="stylesheet" href="css/components.css?v=20260502t">
+    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502t">
 </head>
 <body>
     <!-- =========================================================
@@ -633,9 +633,7 @@
                             <div class="dh-timeline-head">
                                 <h3 class="dh-timeline-title" data-i18n="sec_reward_history">Reward History</h3>
                                 <span class="dh-history-staleness" id="dh-history-staleness" style="display:none;"></span>
-                                <button type="button" onclick="window.dumpRewardHistory()" title="Dump raw rewardHistory JSON for debugging" style="background:var(--surface-2);border:1px solid var(--border);color:var(--text-dim);padding:5px 10px;border-radius:8px;font-size:0.7em;cursor:pointer;font-weight:600;letter-spacing:0.05em;">🐞 DUMP</button>
                             </div>
-                            <div id="dh-history-debug" style="display:none;margin:8px 0;"></div>
                             <div id="dash-history-chart" style="position:relative;flex:1;min-height:200px;">
                                 <div id="dash-history-empty" style="text-align:center;padding:36px 20px;color:var(--text-dim);">
                                     <div style="font-size:2em;margin-bottom:10px;">📅</div>
@@ -5021,6 +5019,16 @@
          is already defined when tracking.js patches it.
          ========================================================= -->
     <!-- =========================================================
+         DEBUG: floating dump panel — click to reveal raw rewardHistory
+         JSON. Always visible (top-right corner) so it's impossible to
+         miss while we're debugging the calendar values.
+         ========================================================= -->
+    <div id="debug-dump-fab" style="position:fixed;top:84px;right:20px;z-index:300;display:flex;flex-direction:column;align-items:flex-end;gap:8px;">
+        <button onclick="window.dumpRewardHistory()" style="background:#f85149;color:#fff;border:none;padding:10px 18px;border-radius:10px;font-size:0.85em;font-weight:700;letter-spacing:0.04em;cursor:pointer;box-shadow:0 6px 18px rgba(248,81,73,0.35);">🐞 DUMP REWARD DATA</button>
+        <div id="debug-dump-panel" style="display:none;background:#0c1117;border:1px solid #f85149;border-radius:12px;padding:14px;width:520px;max-width:90vw;max-height:60vh;overflow:auto;box-shadow:0 12px 40px rgba(0,0,0,0.55);"></div>
+    </div>
+
+    <!-- =========================================================
          GLOBAL LIVE TICKER FOOTER — sticky bottom bar with BTC/GMT/
          Hashrate/Difficulty + quick legal links. Hidden by default
          (inherits #app-root's display:none) so anonymous visitors
@@ -5376,15 +5384,14 @@
         // to "Reward History" header to reveal a textarea with the JSON
         // (pretty-printed). Copy/paste back here to debug calc bugs.
         window.dumpRewardHistory = function () {
-            const container = document.getElementById('dh-history-debug');
-            if (!container) return;
+            const panel = document.getElementById('debug-dump-panel');
+            if (!panel) return;
             // Toggle visibility
-            if (container.style.display === 'block') {
-                container.style.display = 'none';
+            if (panel.style.display === 'block') {
+                panel.style.display = 'none';
                 return;
             }
             const hist = window.state?.rewardHistory || [];
-            // Limit to last 12 days for readability
             const sliced = [...hist]
                 .sort((a, b) => String(a.date).localeCompare(String(b.date)))
                 .slice(-12);
@@ -5394,15 +5401,25 @@
                 satPerTH: window.state?.satPerTH,
                 apiSatPerTH: window.state?.apiSatPerTH,
                 feeMode: window.state?.feeMode,
-                today: new Date().toISOString().substring(0, 10)
+                today: new Date().toISOString().substring(0, 10),
+                historyCount: hist.length
             };
             const dump = JSON.stringify({ state: stateInfo, rewardHistory_last12: sliced }, null, 2);
-            container.innerHTML = `
-                <div style="font-size:0.8em;color:var(--text-dim);margin-bottom:6px;">Raw stored values for the last 12 reward-history entries (paste this back to investigate):</div>
-                <textarea readonly onclick="this.select()" style="width:100%;min-height:240px;background:var(--bg-soft);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:8px;font-family:ui-monospace,Menlo,monospace;font-size:0.78em;line-height:1.4;">${dump.replace(/</g, '&lt;')}</textarea>
+            panel.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                    <span style="font-size:0.85em;font-weight:700;color:#f85149;">RAW REWARD DATA (last 12 days)</span>
+                    <button onclick="navigator.clipboard.writeText(document.getElementById('debug-dump-text').value);this.textContent='✓ Copied';setTimeout(()=>this.textContent='📋 Copy',1200);" style="background:#161b22;border:1px solid #f85149;color:#f85149;padding:4px 10px;border-radius:6px;font-size:0.75em;cursor:pointer;font-weight:700;">📋 Copy</button>
+                </div>
+                <textarea id="debug-dump-text" readonly onclick="this.select()" style="width:100%;min-height:300px;background:#0d1117;border:1px solid #30363d;color:#e6edf3;padding:10px;border-radius:8px;font-family:ui-monospace,Menlo,monospace;font-size:0.78em;line-height:1.45;resize:vertical;">${dump.replace(/</g, '&lt;')}</textarea>
             `;
-            container.style.display = 'block';
+            panel.style.display = 'block';
         };
+        // Auto-open if URL has ?dump
+        try {
+            if (location.search.includes('dump')) {
+                setTimeout(() => window.dumpRewardHistory(), 1500);
+            }
+        } catch (_) {}
 
         // === Wallet card mode (BTC / GMT / $) ===
         // Delegates to the legacy `setWalletMode` (which owns
