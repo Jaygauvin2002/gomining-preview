@@ -469,20 +469,64 @@
         for (const m of Object.values(DATA.miners)) {
             if (m.url?.includes('/nft/get-my') && m.data?.data?.array?.length > 0) {
                 const nfts = m.data.data.array;
-                const totalPower = nfts.reduce((sum, n) => sum + (n.power || 0), 0);
-                // Use weighted average for efficiency
-                const totalWatts = nfts.reduce((sum, n) => sum + (n.power || 0) * (n.energyEfficiency || 15), 0);
-                const avgEfficiency = totalPower > 0 ? totalWatts / totalPower : 15;
+
+                // === Multi-field power summing ===
+                // GoMining's UI displays a higher total than naive Σ(n.power)
+                // (we observed 335.43 displayed vs 333.27 from n.power across
+                // the same 3 miners). The displayed value likely comes from
+                // a different field on each NFT — boostedPower / computingPower
+                // / actualPower / totalPower depending on API generation.
+                // Strategy: sum each candidate field independently and keep
+                // the LARGEST sum. The largest sum is the displayed total
+                // because boost/computing fields ≥ base power. Falls back
+                // to plain `n.power` when only that field exists (unchanged
+                // behavior on older API responses).
+                const POWER_FIELDS = [
+                    'computingPower',     // newer "displayed" power
+                    'boostedPower',       // includes streak/VIP/mode bonuses
+                    'actualPower',
+                    'totalPower',
+                    'displayedPower',
+                    'farmPower',
+                    'effectivePower',
+                    'power',              // legacy base field
+                ];
+                const sums = {};
+                for (const f of POWER_FIELDS) {
+                    const s = nfts.reduce((acc, n) => acc + (typeof n[f] === 'number' ? n[f] : 0), 0);
+                    if (s > 0) sums[f] = s;
+                }
+                let totalPower = 0;
+                let powerField = 'none';
+                for (const [f, v] of Object.entries(sums)) {
+                    if (v > totalPower) { totalPower = v; powerField = f; }
+                }
+                if (totalPower === 0) {
+                    // Last-ditch: literal n.power || 0 (matches legacy behavior
+                    // when no recognised field is present on any NFT).
+                    totalPower = nfts.reduce((acc, n) => acc + (n.power || 0), 0);
+                    powerField = 'power-fallback';
+                }
+
+                // Use weighted average for efficiency (always from `power` since
+                // efficiency is paired with raw power in the API)
+                const basePower = nfts.reduce((acc, n) => acc + (n.power || 0), 0);
+                const totalWatts = nfts.reduce((acc, n) => acc + (n.power || 0) * (n.energyEfficiency || 15), 0);
+                const avgEfficiency = basePower > 0 ? totalWatts / basePower : 15;
                 const main = nfts.reduce((a, b) => (b.power || 0) > (a.power || 0) ? b : a, nfts[0]);
+
                 result.miner = {
                     power: totalPower,
                     energyEfficiency: avgEfficiency,
                     level: main.level,
                     name: main.name,
                     minerCount: nfts.length,
-                    apiPower: totalPower,
-                    powerSource: 'api'
+                    apiPower: basePower,        // legacy n.power sum (for diagnostics)
+                    apiPowerField: powerField,  // which field the chosen sum came from
+                    powerSource: 'api',
+                    fieldSums: sums              // all field sums (visible in JSON export for debug)
                 };
+                try { console.log('[GoMining Extractor] Power per field:', sums, '→ chosen:', totalPower, 'via', powerField); } catch {}
             }
             if (m.url?.includes('/wallet/find-by-user') && m.data?.data?.array) {
                 const gmtW = m.data.data.array.find(w => w.type === 'VIRTUAL_GMT');
@@ -715,22 +759,61 @@
         }
         delete result.income._partialDayPr;
 
-        // === Override miner.power with the visible DOM value (when available) ===
-        // The /nft/get-my API can return a sum that diverges from what
-        // the Mining-farm widget actually shows on the page (we observed
-        // 333.27 vs 335.43 with the same 3 miners). Trust the UI: the user
-        // has been verifying against it. Falls back silently if no DOM
-        // match (e.g. user is on a different GoMining page).
+        // === Belt-and-suspenders: scan every captured response for a
+        //     top-level "totalPower" / "farmPower" / "computingPower" /
+        //     "totalHashrate" field. If one exists with a value larger
+        //     than what we summed per-NFT, prefer it — the user-facing
+        //     UI almost always pulls from such a dedicated total endpoint
+        //     when it exists.
+        const globalPower = findFarmTotalAcrossResponses(result.miner.power || 0);
+        if (globalPower != null && globalPower > (result.miner.power || 0)) {
+            result.miner.power = globalPower;
+            result.miner.powerSource = 'global-scan';
+        }
+
+        // === Final override: visible DOM value ===
+        // If the Mining-farm widget is rendered on the current page, what
+        // the user *sees* is the canonical source — trumps API/global scan.
         const domPower = scanFarmPowerFromDom();
         if (domPower != null && domPower > 0) {
-            // Keep the API value for diagnostics; expose source so the
-            // simulator can hint where the number came from later.
-            result.miner.apiPower = result.miner.power || null;
             result.miner.power = domPower;
             result.miner.powerSource = 'dom';
         }
 
         return result;
+    }
+
+    // === Scan every captured response (DATA.miners + DATA.rewards) for
+    //     a top-level field whose name suggests "total power / hashrate".
+    //     Returns the largest plausible value > minSum, or null. ===
+    function findFarmTotalAcrossResponses(minSum) {
+        const POWER_FIELDS = /^(?:total[_\s]?power|farm[_\s]?power|total[_\s]?hashrate|computing[_\s]?power|displayed[_\s]?power|farm[_\s]?total|total[_\s]?th|total[_\s]?hash|hashrate|hashpower)$/i;
+        const candidates = [];
+
+        function scan(obj, depth = 0) {
+            if (!obj || depth > 8) return;
+            if (Array.isArray(obj)) {
+                for (const o of obj) scan(o, depth + 1);
+                return;
+            }
+            if (typeof obj !== 'object') return;
+            for (const [k, v] of Object.entries(obj)) {
+                if (typeof v === 'number' && v > 50 && v < 1e7
+                    && POWER_FIELDS.test(k.replace(/[_\s]/g, ''))) {
+                    candidates.push({ field: k, value: v });
+                }
+                if (v && typeof v === 'object') scan(v, depth + 1);
+            }
+        }
+
+        for (const m of Object.values(DATA.miners)) if (m.data) scan(m.data);
+        for (const r of Object.values(DATA.rewards)) if (r.data) scan(r.data);
+
+        if (!candidates.length) return null;
+        // Prefer the largest plausible — that's typically the farm total
+        const best = candidates.reduce((a, b) => b.value > a.value ? b : a);
+        try { console.log('[GoMining Extractor] Global scan candidates:', candidates, '→ chosen:', best); } catch {}
+        return best.value;
     }
 
     // === Init ===
