@@ -44,44 +44,85 @@
     };
 
     // === Injecter l'intercepteur réseau dans la page ===
+    // (Already injected at document_start by inject-early.js. The
+    // interceptor itself guards against double-init. We re-inject as
+    // a fallback in case inject-early didn't run for some reason.)
     const script = document.createElement('script');
     script.src = chrome.runtime.getURL('interceptor.js');
     (document.head || document.documentElement).appendChild(script);
     script.onload = () => script.remove();
 
-    // === Écouter les requêtes interceptées ===
-    window.addEventListener('message', (event) => {
-        if (event.source !== window) return;
-        if (event.data.type !== 'GOMINING_FETCH' && event.data.type !== 'GOMINING_XHR') return;
-
-        const { url, body, status } = event.data;
-        if (status !== 200) return;
-
-        // Ignorer les requêtes non pertinentes
-        if (url.includes('intercom') || url.includes('scevent') || url.includes('pixel')) return;
+    // === Process one intercepted message (fetch / XHR / WS / SSE) ===
+    function handleInterceptedMessage(data) {
+        if (!data) return;
+        const { type, url, body, status } = data;
+        if (type === 'GOMINING_FETCH' || type === 'GOMINING_XHR') {
+            if (status !== 200) return;
+        }
+        if (url && (url.includes('intercom') || url.includes('scevent') || url.includes('pixel'))) return;
 
         let parsed = null;
         try {
             parsed = JSON.parse(body);
-        } catch(e) {
-            return; // pas du JSON
+        } catch (e) {
+            return; // not JSON
         }
 
-        // Logger toutes les requêtes API
+        // Log entry — same shape regardless of channel, but tag the type
+        const channel = type === 'GOMINING_FETCH' ? 'fetch'
+                      : type === 'GOMINING_XHR'   ? 'xhr'
+                      : type === 'GOMINING_WS'    ? 'ws'
+                      : type === 'GOMINING_SSE'   ? 'sse' : '?';
         const entry = {
             time: new Date().toISOString(),
-            url: url.substring(0, 120),
-            size: body.length,
+            url: ('[' + channel + '] ' + (url || '')).substring(0, 120),
+            size: body ? body.length : 0,
             keys: parsed ? Object.keys(parsed).join(', ') : ''
         };
         DATA.apiCalls.unshift(entry);
         if (DATA.apiCalls.length > 50) DATA.apiCalls.pop();
 
-        // Analyser les données intéressantes
-        analyzeResponse(url, parsed);
+        // Storage strategy:
+        //   fetch / XHR  → keyed by endpoint pathname (last response wins)
+        //   WS / SSE     → keyed by url + timestamp (capped at 30 frames)
+        if (type === 'GOMINING_WS' || type === 'GOMINING_SSE') {
+            const wsKey = type.toLowerCase().replace('gomining_', '') + ':' +
+                          (url || 'unknown').substring(0, 80) + ':' + Date.now();
+            DATA.miners[wsKey] = { url: '[' + channel + '] ' + url, data: parsed, time: Date.now() };
+            // Cap WS/SSE frames at 30 to avoid unbounded growth
+            const streamKeys = Object.keys(DATA.miners).filter(k => k.startsWith('ws:') || k.startsWith('sse:'));
+            if (streamKeys.length > 30) {
+                const oldest = streamKeys.sort()[0];
+                delete DATA.miners[oldest];
+            }
+        }
+
+        // Analyze + persist + bubble up to simulator
+        analyzeResponse(url || '', parsed);
         updatePanel();
         scheduleAutoSync();
+    }
+
+    // === Écouter les requêtes interceptées (fetch / XHR / WS / SSE) ===
+    window.addEventListener('message', (event) => {
+        if (event.source !== window) return;
+        const t = event.data && event.data.type;
+        if (t !== 'GOMINING_FETCH' && t !== 'GOMINING_XHR' &&
+            t !== 'GOMINING_WS' && t !== 'GOMINING_SSE') return;
+        handleInterceptedMessage(event.data);
     });
+
+    // === Drain the early buffer set up by inject-early.js ===
+    // Messages received between document_start and document_idle are
+    // queued there. Process them all now so we don't lose the page's
+    // initial fetches.
+    try {
+        if (Array.isArray(window.__gmMsgBuffer)) {
+            const buffered = window.__gmMsgBuffer.slice();
+            window.__gmMsgBuffer = null; // signal: stop buffering
+            for (const data of buffered) handleInterceptedMessage(data);
+        }
+    } catch (_) {}
 
     // === Extraire la clé unique d'un endpoint (sans query params) ===
     function extractEndpointKey(url) {
