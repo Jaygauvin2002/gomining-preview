@@ -19,10 +19,10 @@
     <link rel="manifest" href="pwa-manifest.json">
     <link rel="apple-touch-icon" href="icon.png">
     <title>GMSim — GoMining NFT Simulator</title>
-    <link rel="stylesheet" href="css/main.css?v=20260502t">
-    <link rel="stylesheet" href="css/tokens.css?v=20260502t">
-    <link rel="stylesheet" href="css/components.css?v=20260502t">
-    <link rel="stylesheet" href="css/strategy-lab.css?v=20260502t">
+    <link rel="stylesheet" href="css/main.css?v=20260503a">
+    <link rel="stylesheet" href="css/tokens.css?v=20260503a">
+    <link rel="stylesheet" href="css/components.css?v=20260503a">
+    <link rel="stylesheet" href="css/strategy-lab.css?v=20260503a">
 </head>
 <body>
     <!-- =========================================================
@@ -3059,7 +3059,7 @@
             const power = day.power || 0;
             if (!btcP || !gmtP || !power) return 0;
 
-            const satPerTH = state.satPerTH || state.apiSatPerTH || 46;
+            const satPerTH = state.satPerTH || state.apiSatPerTH || 47;
             const expectedGross = satPerTH * power * btcP / gmtP / 1e8;
 
             // Trust poolReward if within 25 % of expected gross
