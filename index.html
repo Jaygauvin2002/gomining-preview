@@ -764,75 +764,94 @@
             <div style="display:none;" id="net-difficulty">--</div>
             <div id="dash-ticker" style="display:none;"></div>
 
-            <!-- NFT Miner Parameters (moved from Simulator tab) -->
-            <div class="section">
-                <div class="collapsible" id="params-collapsible">
-                <div class="collapsible-header" onclick="toggleCollapsible('params-collapsible')">
-                    <h2 style="margin:0;border:none;padding:0;" data-i18n="sec_mining_params">NFT Miner Parameters</h2>
-                    <span class="collapsible-summary" id="params-summary"></span>
-                    <span class="collapsible-chevron">▾</span>
-                </div>
-                <div class="collapsible-body">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label data-i18n="lbl_hashrate">Hashrate (TH/s)</label>
-                        <input type="number" id="hashrate" value="1" min="1" step="1">
-                        <span class="hint" data-i18n="hint_hashrate">1 TH/s (level 1) to 5000 TH/s (level 20)</span>
-                    </div>
-                    <div class="form-group">
-                        <label data-i18n="lbl_efficiency">Energy Efficiency (W/TH)</label>
-                        <input type="number" id="efficiency" value="15" min="15" max="50" step="1">
-                        <span class="hint" data-i18n="hint_efficiency">15 W/TH (best) to 50 W/TH (worst)</span>
-                    </div>
-                    <div class="form-group">
-                        <label data-i18n="lbl_elec_cost">Electricity Cost ($/kWh)</label>
-                        <input type="number" id="elec-cost" value="0.05" min="0.01" max="0.20" step="0.001">
-                        <span class="hint" data-i18n="hint_elec_cost">GoMining: $0.05 - $0.07</span>
-                    </div>
-                    <div class="discount-group">
-                        <div class="discount-group-header">
-                            <span>%</span> Discounts
-                            <span class="discount-group-total" id="discount-display">0%</span>
+            <!-- "Enter manually" trigger — opens modal with full NFT Miner Parameters + prices -->
+            <div style="display:flex;justify-content:center;margin:16px 0 8px 0;">
+                <button onclick="openManualEntry()" style="background:transparent;color:var(--text-dim);border:1px dashed var(--border);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.9em;display:inline-flex;align-items:center;gap:6px;transition:all 0.2s;" onmouseover="this.style.color='var(--accent)';this.style.borderColor='var(--accent)';" onmouseout="this.style.color='var(--text-dim)';this.style.borderColor='var(--border)';">
+                    <span>✏️</span>
+                    <span data-i18n="manual_entry_btn">Enter manually</span>
+                </button>
+            </div>
+
+            <!-- Manual Entry Modal — full NFT Miner Parameters + BTC/GMT prices -->
+            <div id="manual-entry-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:9999;align-items:flex-start;justify-content:center;padding:40px 20px;overflow-y:auto;">
+                <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:24px;max-width:680px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+                    <h2 style="margin:0 0 6px 0;border:none;padding:0;color:var(--accent);" data-i18n="sec_mining_params">NFT Miner Parameters</h2>
+                    <p style="margin:0 0 18px 0;color:var(--text-dim);font-size:0.85em;" data-i18n="manual_entry_desc">Edit your miner data and prices. Changes recalculate automatically.</p>
+
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label data-i18n="lbl_hashrate">Hashrate (TH/s)</label>
+                            <input type="number" id="hashrate" value="1" min="1" step="1">
+                            <span class="hint" data-i18n="hint_hashrate">1 TH/s (level 1) to 5000 TH/s (level 20)</span>
                         </div>
-                        <div id="discount-fee-mode-hint" style="font-size:0.8em;color:var(--text-dim);margin-bottom:8px;padding:6px 10px;background:rgba(247,147,26,0.06);border-radius:6px;border-left:2px solid var(--accent);display:none;"></div>
-                        <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));">
-                            <div class="form-group">
-                                <label>Maintenance GMT</label>
-                                <input type="number" id="discount-maintenance" value="0" min="0" max="20" step="1">
-                            </div>
-                            <div class="form-group">
-                                <label>VIP</label>
-                                <input type="number" id="discount-vip" value="0" min="0" max="6" step="0.1">
-                            </div>
-                            <div class="form-group">
-                                <label>Streak</label>
-                                <input type="number" id="discount-streak" value="0" min="0" max="3" step="0.3">
-                            </div>
-                            <div class="form-group">
-                                <label>Mining mode</label>
-                                <input type="number" id="discount-solo" value="0" min="0" max="5" step="0.01">
-                            </div>
+                        <div class="form-group">
+                            <label data-i18n="lbl_efficiency">Energy Efficiency (W/TH)</label>
+                            <input type="number" id="efficiency" value="15" min="15" max="50" step="1">
+                            <span class="hint" data-i18n="hint_efficiency">15 W/TH (best) to 50 W/TH (worst)</span>
                         </div>
-                        <input type="hidden" id="discount" value="0">
+                        <div class="form-group">
+                            <label data-i18n="lbl_elec_cost">Electricity Cost ($/kWh)</label>
+                            <input type="number" id="elec-cost" value="0.05" min="0.01" max="0.20" step="0.001">
+                            <span class="hint" data-i18n="hint_elec_cost">GoMining: $0.05 - $0.07</span>
+                        </div>
+                        <div class="discount-group">
+                            <div class="discount-group-header">
+                                <span>%</span> Discounts
+                                <span class="discount-group-total" id="discount-display">0%</span>
+                            </div>
+                            <div id="discount-fee-mode-hint" style="font-size:0.8em;color:var(--text-dim);margin-bottom:8px;padding:6px 10px;background:rgba(247,147,26,0.06);border-radius:6px;border-left:2px solid var(--accent);display:none;"></div>
+                            <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));">
+                                <div class="form-group">
+                                    <label>Maintenance GMT</label>
+                                    <input type="number" id="discount-maintenance" value="0" min="0" max="20" step="1">
+                                </div>
+                                <div class="form-group">
+                                    <label>VIP</label>
+                                    <input type="number" id="discount-vip" value="0" min="0" max="6" step="0.1">
+                                </div>
+                                <div class="form-group">
+                                    <label>Streak</label>
+                                    <input type="number" id="discount-streak" value="0" min="0" max="3" step="0.3">
+                                </div>
+                                <div class="form-group">
+                                    <label>Mining mode</label>
+                                    <input type="number" id="discount-solo" value="0" min="0" max="5" step="0.01">
+                                </div>
+                            </div>
+                            <input type="hidden" id="discount" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="lbl_gmt_wallet">GMT in Wallet</label>
+                            <input type="number" id="gmt-prepaid" value="0" min="0" step="1">
+                            <span class="hint" data-i18n="hint_gmt_wallet">Virtual GMT wallet balance</span>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="lbl_gmt_locked">GMT Locked (tokenomics)</label>
+                            <input type="number" id="gmt-locked" value="0" min="0" step="10">
+                            <span class="hint" data-i18n="hint_gmt_locked">Tokens locked in veGOMINING</span>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="lbl_sat_per_th">sat/TH/day (PR)</label>
+                            <input type="number" id="sat-per-th" value="47" min="1" max="500" step="1">
+                            <span class="hint" data-i18n="hint_sat_per_th">Auto-calculated — manually adjustable</span>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="manual_entry_btc">BTC Price (USD)</label>
+                            <input type="number" id="manual-btc-price" min="0" step="1" placeholder="e.g. 78000">
+                            <span class="hint" data-i18n="manual_entry_btc_hint">Override the live BTC price for what-if simulations</span>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="manual_entry_gmt">GMT Price (USD)</label>
+                            <input type="number" id="manual-gmt-price" min="0" step="0.0001" placeholder="e.g. 0.30">
+                            <span class="hint" data-i18n="manual_entry_gmt_hint">Override the live GMT price for what-if simulations</span>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label data-i18n="lbl_gmt_wallet">GMT in Wallet</label>
-                        <input type="number" id="gmt-prepaid" value="0" min="0" step="1">
-                        <span class="hint" data-i18n="hint_gmt_wallet">Virtual GMT wallet balance</span>
-                    </div>
-                    <div class="form-group">
-                        <label data-i18n="lbl_gmt_locked">GMT Locked (tokenomics)</label>
-                        <input type="number" id="gmt-locked" value="0" min="0" step="10">
-                        <span class="hint" data-i18n="hint_gmt_locked">Tokens locked in veGOMINING</span>
-                    </div>
-                    <div class="form-group">
-                        <label data-i18n="lbl_sat_per_th">sat/TH/day (PR)</label>
-                        <input type="number" id="sat-per-th" value="47" min="1" max="500" step="1">
-                        <span class="hint" data-i18n="hint_sat_per_th">Auto-calculated — manually adjustable from your dashboard</span>
+
+                    <div style="display:flex;gap:10px;margin-top:22px;justify-content:flex-end;">
+                        <button onclick="closeManualEntry()" style="background:transparent;color:var(--text-dim);border:1px solid var(--border);padding:10px 18px;border-radius:6px;cursor:pointer;font-size:0.9em;" data-i18n="manual_entry_close">Close</button>
+                        <button onclick="applyManualPrices(); closeManualEntry();" style="background:var(--accent);color:#000;border:none;padding:10px 22px;border-radius:6px;cursor:pointer;font-size:0.9em;font-weight:700;" data-i18n="manual_entry_apply">Apply & Close</button>
                     </div>
                 </div>
-                </div> <!-- /collapsible-body -->
-                </div> <!-- /collapsible -->
             </div>
 
             </div><!-- /#dashboard-details (toggle only collapses the KPI rows + manual-entry above) -->
@@ -2651,6 +2670,37 @@
             localStorage.setItem(SAVE_KEY, JSON.stringify(data));
         }
 
+        // ===== MANUAL ENTRY MODAL (full NFT params + BTC/GMT price overrides) =====
+        function openManualEntry() {
+            // Pre-fill price overrides with current live state
+            const btcEl = document.getElementById('manual-btc-price');
+            const gmtEl = document.getElementById('manual-gmt-price');
+            if (btcEl) btcEl.value = state.btcPrice ? state.btcPrice.toFixed(2) : '';
+            if (gmtEl) gmtEl.value = state.gmtPrice ? state.gmtPrice.toFixed(4) : '';
+            document.getElementById('manual-entry-modal').style.display = 'flex';
+        }
+        function closeManualEntry() {
+            document.getElementById('manual-entry-modal').style.display = 'none';
+        }
+        function applyManualPrices() {
+            // Push manual price overrides into state and trigger recalc.
+            // Empty values leave the live prices untouched.
+            const btc = parseFloat(document.getElementById('manual-btc-price').value);
+            const gmt = parseFloat(document.getElementById('manual-gmt-price').value);
+            if (!isNaN(btc) && btc > 0) {
+                state.btcPrice = btc;
+                const btcPriceEl = document.getElementById('btc-price');
+                if (btcPriceEl) btcPriceEl.textContent = formatUSD(btc);
+            }
+            if (!isNaN(gmt) && gmt > 0) {
+                state.gmtPrice = gmt;
+                const gmtPriceEl = document.getElementById('gmt-price');
+                if (gmtPriceEl) gmtPriceEl.textContent = '$' + gmt.toFixed(4);
+            }
+            saveSettings();
+            if (typeof calculate === 'function') calculate();
+        }
+
         function loadSettings() {
             try {
                 const data = JSON.parse(localStorage.getItem(SAVE_KEY));
@@ -4028,6 +4078,10 @@ function renderCalendar(history, chartEl) {
                 val_metric: 'Metric', val_simulator: 'Simulator', val_last_data: 'Latest data',
                 val_accuracy: 'Accuracy', val_validated: 'Calculations validated!', val_net_gap: 'Net gap', val_check_params: 'check parameters',
                 val_row_gross: 'Pool Reward (gross)', val_row_c1: 'C1 (electricity)', val_row_c2: 'C2 (service)', val_row_net: 'Net reward',
+                manual_entry_btn: 'Enter manually', manual_entry_desc: 'Edit your miner data and prices. Changes recalculate automatically.',
+                manual_entry_btc: 'BTC Price (USD)', manual_entry_btc_hint: 'Override the live BTC price for what-if simulations',
+                manual_entry_gmt: 'GMT Price (USD)', manual_entry_gmt_hint: 'Override the live GMT price for what-if simulations',
+                manual_entry_close: 'Close', manual_entry_apply: 'Apply & Close',
                 cal_week: 'Week', cal_average: 'Average', cal_day: 'day', cal_week_short: 'wk',
                 cal_empty: 'Sync your GoMining data to see your reward history calendar.',
                 goal_month_est: 'month estimated', goal_above: 'above objective', goal_missing: 'missing',
@@ -4245,6 +4299,10 @@ function renderCalendar(history, chartEl) {
                 val_metric: 'Métrique', val_simulator: 'Simulateur', val_last_data: 'Dernière donnée',
                 val_accuracy: 'Précision', val_validated: 'Calculs validés !', val_net_gap: 'Écart net', val_check_params: 'vérifier les paramètres',
                 val_row_gross: 'Pool Reward (brut)', val_row_c1: 'C1 (électricité)', val_row_c2: 'C2 (service)', val_row_net: 'Profit net',
+                manual_entry_btn: 'Entrer manuellement', manual_entry_desc: 'Modifie tes données de mineur et les prix. Les changements recalculent automatiquement.',
+                manual_entry_btc: 'Prix BTC (USD)', manual_entry_btc_hint: 'Forcer un prix BTC pour des simulations what-if',
+                manual_entry_gmt: 'Prix GMT (USD)', manual_entry_gmt_hint: 'Forcer un prix GMT pour des simulations what-if',
+                manual_entry_close: 'Fermer', manual_entry_apply: 'Appliquer et fermer',
                 cal_week: 'Semaine', cal_average: 'Moyenne', cal_day: 'jour', cal_week_short: 'sem',
                 cal_empty: 'Synchronise tes données GoMining pour voir ton calendrier des rewards.',
                 goal_month_est: 'mois estimé', goal_above: "au-dessus de l'objectif", goal_missing: 'manquants',
