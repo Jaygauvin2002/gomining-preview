@@ -917,36 +917,89 @@
 
         <!-- TAB: BTC Scenarios -->
         <div class="tab-content" id="tab-scenarios">
-            <div class="section">
-                <h2 data-i18n="sec_btc_scenarios">Profits by Bitcoin Price</h2>
-                <p style="color: var(--text-dim); font-size: 0.9em; margin-bottom: 15px;" data-i18n="scenarios_desc">
-                    Based on your NFT parameters above. Orange line = current price.
-                </p>
-                <div class="form-grid" style="margin-bottom:15px;">
-                    <div class="form-group">
-                        <label data-i18n="lbl_custom_btc">Custom BTC Price to Add ($)</label>
-                        <div style="display:flex;gap:8px;">
-                            <input type="number" id="custom-btc" placeholder="ex: 250000" step="1000">
-                            <button class="btn-calculate" style="margin:0;padding:10px 20px;" onclick="addCustomBtc()">+</button>
-                        </div>
-                    </div>
+
+            <!-- Hero: 3 stat cards (current / bear / bull) -->
+            <div class="scn-hero">
+                <div class="scn-hero-card scn-hero--current">
+                    <div class="scn-hero-label" data-i18n="scn_at_current">At current price</div>
+                    <div class="scn-hero-price" id="scn-current-price">—</div>
+                    <div class="scn-hero-net" id="scn-current-net">—</div>
+                    <div class="scn-hero-meta" id="scn-current-meta">—</div>
                 </div>
-                <div style="overflow-x:auto;">
-                    <table id="scenario-table">
-                        <thead>
-                            <tr>
-                                <th data-i18n="th_btc_price">BTC Price</th>
-                                <th data-i18n="th_gross_day">Gross/Day</th>
-                                <th data-i18n="th_fees_day">Fees/Day</th>
-                                <th data-i18n="th_net_day">Net/Day</th>
-                                <th data-i18n="th_net_month">Net/Month</th>
-                                <th data-i18n="th_net_year">Net/Year</th>
-                            </tr>
-                        </thead>
-                        <tbody id="scenario-body"></tbody>
-                    </table>
+                <div class="scn-hero-card scn-hero--bear">
+                    <div class="scn-hero-label" data-i18n="scn_bear">Bear case</div>
+                    <div class="scn-hero-price" id="scn-bear-price">$30,000</div>
+                    <div class="scn-hero-net" id="scn-bear-net">—</div>
+                    <div class="scn-hero-meta" id="scn-bear-meta">—</div>
+                </div>
+                <div class="scn-hero-card scn-hero--bull">
+                    <div class="scn-hero-label" data-i18n="scn_bull">Bull case</div>
+                    <div class="scn-hero-price" id="scn-bull-price">$150,000</div>
+                    <div class="scn-hero-net" id="scn-bull-net">—</div>
+                    <div class="scn-hero-meta" id="scn-bull-meta">—</div>
                 </div>
             </div>
+
+            <!-- Chart: profit curve as BTC price varies -->
+            <div class="section">
+                <h2 data-i18n="scn_chart_title">Net Profit / Day by BTC Price</h2>
+                <p style="color:var(--text-dim);font-size:0.9em;margin-bottom:15px;" data-i18n="scn_chart_desc">
+                    Curve based on your current NFT parameters. Orange marker = today's BTC price. Red marker = breakeven.
+                </p>
+                <div style="position:relative;height:320px;">
+                    <canvas id="scenario-chart" class="chart-canvas" style="width:100%;height:100%;"></canvas>
+                </div>
+                <div class="scn-legend">
+                    <span><span class="scn-dot scn-dot--curve"></span> <span data-i18n="scn_legend_curve">Net profit</span></span>
+                    <span><span class="scn-dot scn-dot--current"></span> <span data-i18n="scn_legend_current">Current price</span></span>
+                    <span><span class="scn-dot scn-dot--breakeven"></span> <span data-i18n="scn_legend_breakeven">Breakeven</span></span>
+                    <span><span class="scn-dot scn-dot--custom"></span> <span data-i18n="scn_legend_custom">Custom</span></span>
+                </div>
+            </div>
+
+            <!-- Quick-pick chips + custom input -->
+            <div class="section">
+                <h2 data-i18n="scn_explore_title">Explore scenarios</h2>
+                <div class="scn-chips">
+                    <button type="button" class="scn-chip" onclick="addScenarioChip(30000)">$30k</button>
+                    <button type="button" class="scn-chip" onclick="addScenarioChip(50000)">$50k</button>
+                    <button type="button" class="scn-chip" onclick="addScenarioChip(75000)">$75k</button>
+                    <button type="button" class="scn-chip" onclick="addScenarioChip(100000)">$100k</button>
+                    <button type="button" class="scn-chip" onclick="addScenarioChip(150000)">$150k</button>
+                    <button type="button" class="scn-chip" onclick="addScenarioChip(200000)">$200k</button>
+                    <button type="button" class="scn-chip" onclick="addScenarioChip(250000)">$250k</button>
+                    <span style="display:inline-flex;align-items:center;gap:6px;margin-left:6px;">
+                        <input type="number" id="custom-btc" placeholder="Custom $" step="1000" style="width:140px;padding:6px 10px;font-size:0.9em;">
+                        <button class="btn-calculate" style="margin:0;padding:6px 14px;font-size:0.85em;" onclick="addCustomBtc()" data-i18n="scn_add">Add</button>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Scenario cards grid -->
+            <div class="scn-grid" id="scenario-cards"></div>
+
+            <!-- Side-by-side comparison -->
+            <div class="section">
+                <h2 data-i18n="scn_compare_title">Compare two scenarios</h2>
+                <p style="color:var(--text-dim);font-size:0.9em;margin-bottom:15px;" data-i18n="scn_compare_desc">
+                    Pick any two BTC prices and see them stacked side by side.
+                </p>
+                <div class="scn-compare-controls">
+                    <div class="scn-compare-input">
+                        <label data-i18n="scn_scenario_a">Scenario A ($)</label>
+                        <input type="number" id="scn-compare-a" value="50000" step="1000" min="1" oninput="updateCompareScenarios()">
+                    </div>
+                    <span class="scn-compare-vs">vs</span>
+                    <div class="scn-compare-input">
+                        <label data-i18n="scn_scenario_b">Scenario B ($)</label>
+                        <input type="number" id="scn-compare-b" value="100000" step="1000" min="1" oninput="updateCompareScenarios()">
+                    </div>
+                </div>
+                <div class="scn-compare-cards" id="scn-compare-cards"></div>
+            </div>
+
+            <!-- Legacy table (hidden — kept for reference / ID compat) -->
+            <table id="scenario-table" style="display:none;"><tbody id="scenario-body"></tbody></table>
         </div>
 
         <!-- TAB: Reinvestment Strategy -->
@@ -1929,28 +1982,261 @@
             const c = state.lastCalc;
             if (!c) return;
 
-            const prices = getScenarioPrices();
-            const tbody = document.getElementById('scenario-body');
-            tbody.innerHTML = '';
+            // === Hero stats: current / bear ($30k) / bull ($150k) ===
+            const heroPrices = [
+                { id: 'current', price: state.btcPrice || 0 },
+                { id: 'bear',    price: 30000 },
+                { id: 'bull',    price: 150000 },
+            ];
+            const currentDailyNet = calcDailyReward(c.hashrate, c.efficiency, c.elecCost, c.discount, state.btcPrice, c.satPerTH);
+            heroPrices.forEach(({ id, price }) => {
+                const priceEl = document.getElementById('scn-' + id + '-price');
+                const netEl   = document.getElementById('scn-' + id + '-net');
+                const metaEl  = document.getElementById('scn-' + id + '-meta');
+                if (!priceEl || !price) return;
+                priceEl.textContent = formatUSD(price);
+                const r = calcDailyReward(c.hashrate, c.efficiency, c.elecCost, c.discount, price, c.satPerTH);
+                if (!r) return;
+                netEl.textContent = formatUSD(r.netUsd) + '/day';
+                netEl.className = 'scn-hero-net ' + (r.netUsd >= 0 ? 'pos' : 'neg');
+                let deltaTxt = '';
+                if (id !== 'current' && currentDailyNet && currentDailyNet.netUsd) {
+                    const pct = ((r.netUsd - currentDailyNet.netUsd) / Math.abs(currentDailyNet.netUsd)) * 100;
+                    const sign = pct >= 0 ? '+' : '';
+                    deltaTxt = ` · ${sign}${pct.toFixed(0)}% vs now`;
+                }
+                metaEl.textContent = formatUSD(r.netUsd * 365) + '/year' + deltaTxt;
+            });
 
-            prices.forEach(btcP => {
+            // === Render scenario cards ===
+            const prices = getScenarioPrices();
+            const grid = document.getElementById('scenario-cards');
+            if (grid) {
+                grid.innerHTML = '';
+                prices.forEach(btcP => {
+                    const r = calcDailyReward(c.hashrate, c.efficiency, c.elecCost, c.discount, btcP, c.satPerTH);
+                    if (!r) return;
+                    const isCurrent = Math.abs(btcP - state.btcPrice) < 1000;
+                    const isCustom = state.customBtcPrices.includes(btcP);
+                    const cls = ['scn-card'];
+                    if (isCurrent) cls.push('scn-card--current');
+                    if (isCustom) cls.push('scn-card--custom');
+                    const netClass = r.netUsd >= 0 ? 'pos' : 'neg';
+                    const card = document.createElement('div');
+                    card.className = cls.join(' ');
+                    card.innerHTML = `
+                        ${isCurrent ? '<span class="scn-card-pill">' + (t('scn_now') || 'Now') + '</span>' : ''}
+                        ${isCustom && !isCurrent ? '<button class="scn-card-x" title="Remove" onclick="removeScenarioChip(' + btcP + ')">×</button>' : ''}
+                        <div class="scn-card-price">${formatUSD(btcP)}</div>
+                        <div class="scn-card-net ${netClass}">${formatUSD(r.netUsd)}<span class="scn-card-net-unit">/day</span></div>
+                        <div class="scn-card-stats">
+                            <div><span>Net/mo</span><strong class="${netClass}">${formatUSD(r.netUsd * 30)}</strong></div>
+                            <div><span>Net/yr</span><strong class="${netClass}">${formatUSD(r.netUsd * 365)}</strong></div>
+                            <div><span>Gross/d</span><strong>${formatUSD(r.grossUsd)}</strong></div>
+                            <div><span>Fees/d</span><strong class="neg">-${formatUSD(r.feesUsd)}</strong></div>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+            }
+
+            // Legacy hidden table — kept populated for any code that still reads it
+            const tbody = document.getElementById('scenario-body');
+            if (tbody) {
+                tbody.innerHTML = '';
+                prices.forEach(btcP => {
+                    const r = calcDailyReward(c.hashrate, c.efficiency, c.elecCost, c.discount, btcP, c.satPerTH);
+                    if (!r) return;
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `<td>${formatUSD(btcP)}</td><td>${formatVal(r.grossBtc, btcP, r.grossGmt)}</td><td>-${formatVal(r.feesBtc, btcP, r.feesGmt)}</td><td>${formatProfit(r.netBtc, btcP, r.netGmt, r.grossBtc)}</td><td>${formatProfit(r.netBtc * 30, btcP, r.netGmt * 30, r.grossBtc * 30)}</td><td>${formatProfit(r.netBtc * 365, btcP, r.netGmt * 365, r.grossBtc * 365)}</td>`;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            // === Chart + side-by-side compare ===
+            drawScenarioChart();
+            updateCompareScenarios();
+        }
+
+        // === Quick-pick chip handlers ===
+        window.addScenarioChip = function (btcP) {
+            if (!state.customBtcPrices.includes(btcP)) state.customBtcPrices.push(btcP);
+            updateScenarios();
+        };
+        window.removeScenarioChip = function (btcP) {
+            state.customBtcPrices = state.customBtcPrices.filter(p => p !== btcP);
+            updateScenarios();
+        };
+
+        // === Profit-curve chart ===
+        function drawScenarioChart() {
+            const canvas = document.getElementById('scenario-chart');
+            const c = state.lastCalc;
+            if (!canvas || !c) return;
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            const w = canvas.clientWidth;
+            const h = canvas.clientHeight;
+            canvas.width  = w * dpr;
+            canvas.height = h * dpr;
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.scale(dpr, dpr);
+            ctx.clearRect(0, 0, w, h);
+
+            // Sample 200 BTC prices from $10k → $250k and compute net USD
+            const minBtc = 10000, maxBtc = 250000, samples = 200;
+            const points = [];
+            for (let i = 0; i <= samples; i++) {
+                const btcP = minBtc + (maxBtc - minBtc) * i / samples;
+                const r = calcDailyReward(c.hashrate, c.efficiency, c.elecCost, c.discount, btcP, c.satPerTH);
+                if (r) points.push({ btc: btcP, net: r.netUsd });
+            }
+            if (points.length < 2) return;
+
+            const minNet = Math.min(0, ...points.map(p => p.net));
+            const maxNet = Math.max(0, ...points.map(p => p.net));
+            const pad = { top: 18, right: 18, bottom: 30, left: 60 };
+            const cw = w - pad.left - pad.right;
+            const ch = h - pad.top - pad.bottom;
+            const xScale = b => pad.left + ((b - minBtc) / (maxBtc - minBtc)) * cw;
+            const yScale = n => pad.top + ch - ((n - minNet) / (maxNet - minNet)) * ch;
+            const yZero  = yScale(0);
+
+            // Grid
+            ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1;
+            for (let i = 0; i <= 4; i++) {
+                const y = pad.top + (ch / 4) * i;
+                ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke();
+            }
+
+            // Y axis labels (USD)
+            ctx.fillStyle = 'rgba(255,255,255,0.45)'; ctx.font = '10px ui-monospace, Menlo, monospace';
+            for (let i = 0; i <= 4; i++) {
+                const v = maxNet - ((maxNet - minNet) / 4) * i;
+                const y = pad.top + (ch / 4) * i;
+                ctx.fillText('$' + Math.round(v).toLocaleString(), 4, y + 3);
+            }
+
+            // X axis labels (BTC)
+            const ticks = [25000, 50000, 75000, 100000, 150000, 200000, 250000];
+            ticks.forEach(b => {
+                if (b < minBtc || b > maxBtc) return;
+                const x = xScale(b);
+                ctx.fillStyle = 'rgba(255,255,255,0.45)';
+                ctx.fillText('$' + (b / 1000) + 'k', x - 14, h - 8);
+            });
+
+            // Zero line
+            if (minNet < 0) {
+                ctx.strokeStyle = 'rgba(248,81,73,0.4)'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
+                ctx.beginPath(); ctx.moveTo(pad.left, yZero); ctx.lineTo(w - pad.right, yZero); ctx.stroke();
+                ctx.setLineDash([]);
+            }
+
+            // Area fill under curve (positive part)
+            const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + ch);
+            grad.addColorStop(0, 'rgba(247,147,26,0.30)');
+            grad.addColorStop(1, 'rgba(247,147,26,0.02)');
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.moveTo(xScale(points[0].btc), yZero);
+            points.forEach(p => ctx.lineTo(xScale(p.btc), yScale(p.net)));
+            ctx.lineTo(xScale(points[points.length - 1].btc), yZero);
+            ctx.closePath();
+            ctx.fill();
+
+            // Curve line
+            ctx.strokeStyle = '#f7931a'; ctx.lineWidth = 2;
+            ctx.beginPath();
+            points.forEach((p, i) => {
+                const x = xScale(p.btc), y = yScale(p.net);
+                if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+
+            // Breakeven marker (where net = 0)
+            for (let i = 1; i < points.length; i++) {
+                const a = points[i - 1], b = points[i];
+                if ((a.net <= 0 && b.net >= 0) || (a.net >= 0 && b.net <= 0)) {
+                    const t = a.net === b.net ? 0 : -a.net / (b.net - a.net);
+                    const beBtc = a.btc + (b.btc - a.btc) * t;
+                    const x = xScale(beBtc), y = yZero;
+                    ctx.fillStyle = '#f85149';
+                    ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI * 2); ctx.fill();
+                    ctx.strokeStyle = 'rgba(248,81,73,0.5)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+                    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, h - pad.bottom); ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.fillStyle = '#f85149'; ctx.font = '11px ui-monospace, Menlo, monospace';
+                    const lbl = '$' + Math.round(beBtc).toLocaleString();
+                    ctx.fillText(lbl, x - 30, h - pad.bottom + 22);
+                    break;
+                }
+            }
+
+            // Current price marker
+            if (state.btcPrice && state.btcPrice >= minBtc && state.btcPrice <= maxBtc) {
+                const x = xScale(state.btcPrice);
+                ctx.strokeStyle = 'rgba(247,147,26,0.8)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+                ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, h - pad.bottom); ctx.stroke();
+                ctx.setLineDash([]);
+                const r = calcDailyReward(c.hashrate, c.efficiency, c.elecCost, c.discount, state.btcPrice, c.satPerTH);
+                if (r) {
+                    const y = yScale(r.netUsd);
+                    ctx.fillStyle = '#f7931a';
+                    ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#000';
+                    ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill();
+                }
+            }
+
+            // Custom price markers
+            (state.customBtcPrices || []).forEach(btcP => {
+                if (btcP < minBtc || btcP > maxBtc) return;
                 const r = calcDailyReward(c.hashrate, c.efficiency, c.elecCost, c.discount, btcP, c.satPerTH);
                 if (!r) return;
-
-                const isCurrent = Math.abs(btcP - state.btcPrice) < 1000;
-                const tr = document.createElement('tr');
-                if (isCurrent) tr.className = 'current';
-
-                tr.innerHTML = `
-                    <td>${formatUSD(btcP)}${isCurrent ? ' ←' : ''}</td>
-                    <td>${formatVal(r.grossBtc, btcP, r.grossGmt)}</td>
-                    <td class="negative">-${formatVal(r.feesBtc, btcP, r.feesGmt)}</td>
-                    <td class="${r.netGmt >= 0 ? 'positive' : 'negative'}">${formatProfit(r.netBtc, btcP, r.netGmt, r.grossBtc)}</td>
-                    <td class="${r.netGmt >= 0 ? 'positive' : 'negative'}">${formatProfit(r.netBtc * 30, btcP, r.netGmt * 30, r.grossBtc * 30)}</td>
-                    <td class="${r.netGmt >= 0 ? 'positive' : 'negative'}">${formatProfit(r.netBtc * 365, btcP, r.netGmt * 365, r.grossBtc * 365)}</td>
-                `;
-                tbody.appendChild(tr);
+                const x = xScale(btcP), y = yScale(r.netUsd);
+                ctx.fillStyle = '#a371f7';
+                ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.font = '10px ui-monospace, Menlo, monospace';
+                ctx.fillText('$' + (btcP / 1000) + 'k', x - 12, y - 9);
             });
+        }
+
+        // === Side-by-side compare ===
+        function updateCompareScenarios() {
+            const c = state.lastCalc;
+            const a = parseFloat(document.getElementById('scn-compare-a')?.value);
+            const b = parseFloat(document.getElementById('scn-compare-b')?.value);
+            const target = document.getElementById('scn-compare-cards');
+            if (!c || !target || !a || !b) return;
+            const rA = calcDailyReward(c.hashrate, c.efficiency, c.elecCost, c.discount, a, c.satPerTH);
+            const rB = calcDailyReward(c.hashrate, c.efficiency, c.elecCost, c.discount, b, c.satPerTH);
+            if (!rA || !rB) return;
+            const renderCard = (label, btcP, r, accent) => `
+                <div class="scn-cmp-card" style="--scn-cmp-accent:${accent}">
+                    <div class="scn-cmp-label">${label}</div>
+                    <div class="scn-cmp-price">${formatUSD(btcP)}</div>
+                    <div class="scn-cmp-net ${r.netUsd >= 0 ? 'pos' : 'neg'}">${formatUSD(r.netUsd)}<span>/day</span></div>
+                    <div class="scn-cmp-rows">
+                        <div><span>Net/month</span><strong class="${r.netUsd >= 0 ? 'pos' : 'neg'}">${formatUSD(r.netUsd * 30)}</strong></div>
+                        <div><span>Net/year</span><strong class="${r.netUsd >= 0 ? 'pos' : 'neg'}">${formatUSD(r.netUsd * 365)}</strong></div>
+                        <div><span>Gross/day</span><strong>${formatUSD(r.grossUsd)}</strong></div>
+                        <div><span>Fees/day</span><strong class="neg">-${formatUSD(r.feesUsd)}</strong></div>
+                        <div><span>Margin</span><strong>${r.grossUsd > 0 ? ((r.netUsd / r.grossUsd) * 100).toFixed(1) + '%' : '—'}</strong></div>
+                    </div>
+                </div>`;
+            const diffYear = (rB.netUsd - rA.netUsd) * 365;
+            const diffPct  = rA.netUsd ? ((rB.netUsd - rA.netUsd) / Math.abs(rA.netUsd)) * 100 : 0;
+            const diffSign = diffYear >= 0 ? '+' : '';
+            target.innerHTML = `
+                ${renderCard('Scenario A', a, rA, 'var(--accent2)')}
+                <div class="scn-cmp-diff">
+                    <div class="scn-cmp-diff-label">B vs A / year</div>
+                    <div class="scn-cmp-diff-value ${diffYear >= 0 ? 'pos' : 'neg'}">${diffSign}${formatUSD(diffYear)}</div>
+                    <div class="scn-cmp-diff-pct ${diffYear >= 0 ? 'pos' : 'neg'}">${diffSign}${diffPct.toFixed(1)}%</div>
+                </div>
+                ${renderCard('Scenario B', b, rB, 'var(--accent)')}
+            `;
         }
 
         // ===== STRATEGY MAP ENGINE =====
@@ -3947,6 +4233,13 @@ function renderCalendar(history, chartEl) {
                 sec_performance: 'Performance Tracking', sec_multisim: 'Multi-Scenario Simulation',
                 sec_mining_params: 'NFT Miner Parameters', sec_results: 'Results',
                 sec_btc_scenarios: 'Profits by Bitcoin Price', sec_strategy_map: 'Strategy Map — BTC × GMT',
+                scn_at_current: 'At current price', scn_bear: 'Bear case', scn_bull: 'Bull case',
+                scn_chart_title: 'Net Profit / Day by BTC Price',
+                scn_chart_desc: "Curve based on your current NFT parameters. Orange marker = today's BTC price. Red marker = breakeven.",
+                scn_legend_curve: 'Net profit', scn_legend_current: 'Current price', scn_legend_breakeven: 'Breakeven', scn_legend_custom: 'Custom',
+                scn_explore_title: 'Explore scenarios', scn_add: 'Add', scn_now: 'Now',
+                scn_compare_title: 'Compare two scenarios', scn_compare_desc: 'Pick any two BTC prices and see them stacked side by side.',
+                scn_scenario_a: 'Scenario A ($)', scn_scenario_b: 'Scenario B ($)',
                 sec_compare: 'Compare: Buy vs Upgrade vs Lock GMT',
                 sec_th_objective: 'TH Objective', sec_validation: 'Validation vs GoMining',
                 sec_vegmt_lock_info: 'veGOMINING Lock Info',
@@ -4166,6 +4459,13 @@ function renderCalendar(history, chartEl) {
                 sec_performance: 'Suivi de Performance', sec_multisim: 'Simulation Multi-Scénarios',
                 sec_mining_params: 'Paramètres NFT Mineur', sec_results: 'Résultats',
                 sec_btc_scenarios: 'Profits selon le prix du Bitcoin', sec_strategy_map: 'Carte Stratégique — BTC × GMT',
+                scn_at_current: 'Au prix actuel', scn_bear: 'Bear case', scn_bull: 'Bull case',
+                scn_chart_title: 'Profit Net / jour selon le prix BTC',
+                scn_chart_desc: "Courbe basée sur tes paramètres NFT. Marqueur orange = prix BTC d'aujourd'hui. Marqueur rouge = breakeven.",
+                scn_legend_curve: 'Profit net', scn_legend_current: 'Prix actuel', scn_legend_breakeven: 'Breakeven', scn_legend_custom: 'Custom',
+                scn_explore_title: 'Explore les scénarios', scn_add: 'Ajouter', scn_now: 'Actuel',
+                scn_compare_title: 'Comparer deux scénarios', scn_compare_desc: 'Choisis deux prix BTC et vois les côte à côte.',
+                scn_scenario_a: 'Scénario A ($)', scn_scenario_b: 'Scénario B ($)',
                 sec_compare: 'Comparer : Acheter vs Upgrader vs Lock GMT',
                 sec_th_objective: 'Objectif TH', sec_validation: 'Validation vs GoMining',
                 sec_vegmt_lock_info: 'Info veGOMINING Lock',

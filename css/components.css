@@ -1468,3 +1468,327 @@ body.has-live-footer .main-content { padding-bottom: 64px; }
     .top-nav-right .sync-status { display: none; }
 }
 
+/* =============================================================
+   31. BTC SCENARIOS — hero / chart legend / chips / cards / compare
+   ============================================================= */
+.scn-hero {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 18px;
+}
+.scn-hero-card {
+    background: var(--surface-1);
+    border: 1px solid var(--border-soft);
+    border-radius: 14px;
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--inset-top);
+}
+.scn-hero-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: var(--scn-hero-accent, var(--accent));
+}
+.scn-hero--current { --scn-hero-accent: var(--accent); }
+.scn-hero--bear    { --scn-hero-accent: var(--red); }
+.scn-hero--bull    { --scn-hero-accent: var(--green); }
+.scn-hero-label {
+    font-size: 0.72em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+}
+.scn-hero-price {
+    font-size: 1.6em;
+    font-weight: 800;
+    color: var(--text);
+    margin-top: 4px;
+    font-variant-numeric: tabular-nums;
+}
+.scn-hero-net {
+    font-size: 1.15em;
+    font-weight: 700;
+    margin-top: 8px;
+    font-variant-numeric: tabular-nums;
+}
+.scn-hero-net.pos { color: var(--green); }
+.scn-hero-net.neg { color: var(--red); }
+.scn-hero-meta {
+    font-size: 0.78em;
+    color: var(--text-dim);
+    margin-top: 4px;
+    font-variant-numeric: tabular-nums;
+}
+
+.scn-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-top: 12px;
+    font-size: 0.78em;
+    color: var(--text-dim);
+}
+.scn-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.scn-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+.scn-dot--curve     { background: var(--accent); }
+.scn-dot--current   { background: var(--accent); box-shadow: 0 0 0 2px rgba(247,147,26,0.3); }
+.scn-dot--breakeven { background: var(--red); }
+.scn-dot--custom    { background: var(--purple); }
+
+.scn-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+}
+.scn-chip {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 14px;
+    border-radius: var(--r-pill);
+    font-size: 0.85em;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+    transition: transform var(--t-fast), border-color var(--t-fast), background var(--t-fast);
+}
+.scn-chip:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateY(-1px);
+}
+
+.scn-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+}
+.scn-card {
+    background: var(--surface-1);
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 16px 16px 14px;
+    position: relative;
+    transition: transform var(--t-fast), border-color var(--t-fast), box-shadow var(--t-fast);
+}
+.scn-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-strong);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.25);
+}
+.scn-card--current {
+    border-color: var(--accent-line);
+    background: linear-gradient(135deg, rgba(247,147,26,0.10) 0%, var(--surface-1) 60%);
+}
+.scn-card--custom {
+    border-color: rgba(163, 113, 247, 0.4);
+}
+.scn-card-pill {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: var(--accent);
+    color: #1a1100;
+    font-size: 0.65em;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 3px 8px;
+    border-radius: var(--r-pill);
+}
+.scn-card-x {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.1em;
+    line-height: 1;
+    transition: color var(--t-fast), background var(--t-fast);
+}
+.scn-card-x:hover {
+    color: var(--red);
+    background: rgba(248, 81, 73, 0.12);
+}
+.scn-card-price {
+    font-size: 1.3em;
+    font-weight: 800;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+}
+.scn-card-net {
+    font-size: 1.5em;
+    font-weight: 800;
+    margin: 6px 0 12px;
+    font-variant-numeric: tabular-nums;
+}
+.scn-card-net.pos { color: var(--green); }
+.scn-card-net.neg { color: var(--red); }
+.scn-card-net-unit {
+    font-size: 0.55em;
+    font-weight: 600;
+    color: var(--text-dim);
+    margin-left: 4px;
+}
+.scn-card-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 14px;
+    font-size: 0.8em;
+    border-top: 1px solid var(--border-soft);
+    padding-top: 10px;
+}
+.scn-card-stats > div { display: flex; justify-content: space-between; gap: 8px; }
+.scn-card-stats span { color: var(--text-dim); }
+.scn-card-stats strong { font-weight: 700; font-variant-numeric: tabular-nums; }
+.scn-card-stats strong.pos { color: var(--green); }
+.scn-card-stats strong.neg { color: var(--red); }
+
+/* Side-by-side compare */
+.scn-compare-controls {
+    display: flex;
+    align-items: flex-end;
+    gap: 18px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+.scn-compare-input { display: flex; flex-direction: column; gap: 4px; }
+.scn-compare-input label {
+    font-size: 0.75em;
+    font-weight: 600;
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+}
+.scn-compare-input input {
+    padding: 10px 14px;
+    width: 180px;
+    font-size: 1em;
+    font-variant-numeric: tabular-nums;
+}
+.scn-compare-vs {
+    font-size: 0.85em;
+    font-weight: 700;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    padding-bottom: 12px;
+}
+.scn-compare-cards {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 14px;
+    align-items: stretch;
+}
+.scn-cmp-card {
+    background: var(--surface-1);
+    border: 1px solid var(--border-soft);
+    border-radius: 14px;
+    padding: 18px 20px;
+    position: relative;
+    overflow: hidden;
+}
+.scn-cmp-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: var(--scn-cmp-accent);
+}
+.scn-cmp-label {
+    font-size: 0.72em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+}
+.scn-cmp-price {
+    font-size: 1.5em;
+    font-weight: 800;
+    color: var(--text);
+    margin-top: 4px;
+    font-variant-numeric: tabular-nums;
+}
+.scn-cmp-net {
+    font-size: 1.7em;
+    font-weight: 800;
+    margin: 10px 0 14px;
+    font-variant-numeric: tabular-nums;
+}
+.scn-cmp-net span {
+    font-size: 0.5em;
+    font-weight: 600;
+    color: var(--text-dim);
+    margin-left: 4px;
+}
+.scn-cmp-net.pos { color: var(--green); }
+.scn-cmp-net.neg { color: var(--red); }
+.scn-cmp-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.85em;
+    border-top: 1px solid var(--border-soft);
+    padding-top: 10px;
+}
+.scn-cmp-rows > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+.scn-cmp-rows span { color: var(--text-dim); }
+.scn-cmp-rows strong { font-weight: 700; font-variant-numeric: tabular-nums; }
+.scn-cmp-rows strong.pos { color: var(--green); }
+.scn-cmp-rows strong.neg { color: var(--red); }
+.scn-cmp-diff {
+    align-self: center;
+    background: var(--surface-2);
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 16px 20px;
+    text-align: center;
+    min-width: 140px;
+}
+.scn-cmp-diff-label {
+    font-size: 0.7em;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    font-weight: 700;
+}
+.scn-cmp-diff-value {
+    font-size: 1.4em;
+    font-weight: 800;
+    margin-top: 6px;
+    font-variant-numeric: tabular-nums;
+}
+.scn-cmp-diff-pct {
+    font-size: 0.95em;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+}
+.scn-cmp-diff-value.pos, .scn-cmp-diff-pct.pos { color: var(--green); }
+.scn-cmp-diff-value.neg, .scn-cmp-diff-pct.neg { color: var(--red); }
+
+@media (max-width: 880px) {
+    .scn-hero { grid-template-columns: 1fr; }
+    .scn-compare-cards { grid-template-columns: 1fr; }
+    .scn-cmp-diff { order: 2; }
+}
+
