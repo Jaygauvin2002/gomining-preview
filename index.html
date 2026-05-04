@@ -1226,12 +1226,15 @@
 
             <!-- HERO: title + intro + key controls + run button -->
             <div class="strat-hero">
+                <div class="strat-hero-glow"></div>
                 <div class="strat-hero-head">
                     <div class="strat-hero-titles">
+                        <span class="strat-hero-eyebrow" data-i18n="strategy_eyebrow">Lab · Plan & Project</span>
                         <h1 class="strat-hero-title" data-i18n="sec_strategy_lab">🧪 Strategy Lab</h1>
                         <p class="strat-hero-sub" data-i18n="strategy_intro">Build a day-by-day reinvestment plan and see what you'd earn over the period. Choose for each day: collect BTC, reinvest in GMT, or buy more TH.</p>
                     </div>
                     <button id="strategy-run-btn" class="strat-run-btn">
+                        <span class="strat-run-glow"></span>
                         <span data-i18n="strategy_run">Run Simulation</span>
                         <span class="strat-run-arrow">▶</span>
                     </button>
@@ -1263,27 +1266,50 @@
                 </div>
             </div>
 
-            <!-- FILL ACTIONS: quick + smart -->
-            <div class="strat-actions">
-                <div class="strat-actions-row">
-                    <span class="strat-actions-label" data-i18n="strategy_quick_fill">Quick fill</span>
-                    <button class="quick-fill-btn" data-fill="btc"><span class="qf-dot qf-dot--btc"></span><span data-i18n="strategy_all_btc">All BTC</span></button>
-                    <button class="quick-fill-btn" data-fill="gmt"><span class="qf-dot qf-dot--gmt"></span><span data-i18n="strategy_all_gmt">All GMT</span></button>
-                    <button class="quick-fill-btn" data-fill="th"><span class="qf-dot qf-dot--th"></span><span data-i18n="strategy_all_th">All TH</span></button>
+            <!-- STEP 1: FILL ACTIONS -->
+            <section class="strat-step">
+                <div class="strat-step-head">
+                    <span class="strat-step-num">1</span>
+                    <div>
+                        <h3 class="strat-step-title" data-i18n="strategy_step1_title">Pre-fill the plan</h3>
+                        <p class="strat-step-sub" data-i18n="strategy_step1_sub">Use a quick fill or let smart-fill cover your fees first.</p>
+                    </div>
                 </div>
-                <div class="strat-actions-row">
-                    <span class="strat-actions-label" data-i18n="strategy_smart_label">Smart fill</span>
-                    <button class="quick-fill-btn quick-fill-btn--smart-th" onclick="smartFillStrategy('th','gmt')"><span data-i18n="strategy_smart_th">⚖ GMT → TH</span></button>
-                    <button class="quick-fill-btn quick-fill-btn--smart-btc" onclick="smartFillStrategy('btc','gmt')"><span data-i18n="strategy_smart_btc">⚖ GMT → BTC</span></button>
-                    <button class="quick-fill-btn quick-fill-btn--smart-th" onclick="smartFillStrategy('th','btc')"><span data-i18n="strategy_smart_btc_th">⚖ BTC → TH</span></button>
+                <div class="strat-actions">
+                    <div class="strat-actions-row">
+                        <span class="strat-actions-label" data-i18n="strategy_quick_fill">Quick fill</span>
+                        <button class="quick-fill-btn qf--btc" data-fill="btc"><span class="qf-dot qf-dot--btc"></span><span data-i18n="strategy_all_btc">All BTC</span></button>
+                        <button class="quick-fill-btn qf--gmt" data-fill="gmt"><span class="qf-dot qf-dot--gmt"></span><span data-i18n="strategy_all_gmt">All GMT</span></button>
+                        <button class="quick-fill-btn qf--th" data-fill="th"><span class="qf-dot qf-dot--th"></span><span data-i18n="strategy_all_th">All TH</span></button>
+                    </div>
+                    <div class="strat-actions-row">
+                        <span class="strat-actions-label" data-i18n="strategy_smart_label">Smart fill</span>
+                        <button class="quick-fill-btn quick-fill-btn--smart-th" onclick="smartFillStrategy('th','gmt')"><span data-i18n="strategy_smart_th">⚖ GMT → TH</span></button>
+                        <button class="quick-fill-btn quick-fill-btn--smart-btc" onclick="smartFillStrategy('btc','gmt')"><span data-i18n="strategy_smart_btc">⚖ GMT → BTC</span></button>
+                        <button class="quick-fill-btn quick-fill-btn--smart-th" onclick="smartFillStrategy('th','btc')"><span data-i18n="strategy_smart_btc_th">⚖ BTC → TH</span></button>
+                    </div>
+                    <div id="strategy-smart-output" class="strat-smart-output"></div>
                 </div>
-                <div id="strategy-smart-output" class="strat-smart-output"></div>
-            </div>
+            </section>
 
-            <!-- DAY GRID — the centerpiece -->
-            <div class="strat-grid-wrap">
-                <div id="strategy-day-grid" style="display:flex;flex-direction:column;gap:6px;"></div>
-            </div>
+            <!-- STEP 2: DAY GRID — the centerpiece -->
+            <section class="strat-step strat-step--grid">
+                <div class="strat-step-head">
+                    <span class="strat-step-num">2</span>
+                    <div>
+                        <h3 class="strat-step-title" data-i18n="strategy_step2_title">Tune day-by-day</h3>
+                        <p class="strat-step-sub" data-i18n="strategy_step2_sub">Click any cell to cycle through BTC / GMT / TH for that day.</p>
+                    </div>
+                    <div class="strat-legend">
+                        <span><span class="qf-dot qf-dot--btc"></span>BTC</span>
+                        <span><span class="qf-dot qf-dot--gmt"></span>GMT</span>
+                        <span><span class="qf-dot qf-dot--th"></span>TH</span>
+                    </div>
+                </div>
+                <div class="strat-grid-wrap">
+                    <div id="strategy-day-grid" style="display:flex;flex-direction:column;gap:6px;"></div>
+                </div>
+            </section>
 
             <!-- ADVANCED: price overrides (collapsible) -->
             <details class="strat-advanced">
@@ -4255,6 +4281,9 @@ function renderCalendar(history, chartEl) {
                 strategy_period: 'Period',
                 strategy_period_7: '7 days', strategy_period_14: '14 days', strategy_period_30: '30 days',
                 strategy_quick_fill: 'Quick fill', strategy_smart_label: 'Smart fill',
+                strategy_eyebrow: 'Lab · Plan & Project',
+                strategy_step1_title: 'Pre-fill the plan', strategy_step1_sub: 'Use a quick fill or let smart-fill cover your fees first.',
+                strategy_step2_title: 'Tune day-by-day', strategy_step2_sub: 'Click any cell to cycle through BTC / GMT / TH for that day.',
                 strategy_all_btc: 'All BTC', strategy_all_gmt: 'All GMT', strategy_all_th: 'All TH',
                 strategy_prices: 'Price Overrides (optional)',
                 strategy_prices_hint: 'Test scenarios — what if BTC pumps or GMT moves? Leave blank to use current snapshot.',
@@ -4481,6 +4510,9 @@ function renderCalendar(history, chartEl) {
                 strategy_period: 'Période',
                 strategy_period_7: '7 jours', strategy_period_14: '14 jours', strategy_period_30: '30 jours',
                 strategy_quick_fill: 'Remplir vite', strategy_smart_label: 'Auto-fill',
+                strategy_eyebrow: 'Lab · Plan & Projection',
+                strategy_step1_title: 'Pré-remplir le plan', strategy_step1_sub: "Utilise un quick fill ou laisse le smart-fill couvrir tes frais en premier.",
+                strategy_step2_title: 'Ajuster jour par jour', strategy_step2_sub: "Clique sur une cellule pour passer entre BTC / GMT / TH pour ce jour-là.",
                 strategy_all_btc: 'Tout BTC', strategy_all_gmt: 'Tout GMT', strategy_all_th: 'Tout TH',
                 strategy_prices: 'Prix personnalisés (optionnel)',
                 strategy_prices_hint: 'Teste des scénarios — que se passe-t-il si BTC monte ou si GMT bouge ? Laisse vide pour utiliser les prix actuels.',
