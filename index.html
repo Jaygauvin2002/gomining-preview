@@ -1223,97 +1223,102 @@
 
         <!-- TAB: Strategy Lab -->
         <div class="tab-content" id="tab-strategy">
-            <div class="section">
-                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
-                    <h2 style="margin:0;border:none;padding:0;color:var(--a-strategy);" data-i18n="sec_strategy_lab">🧪 Strategy Lab</h2>
-                </div>
-                <p style="color:var(--text-dim);font-size:0.95em;margin-bottom:18px;" data-i18n="strategy_intro">Build a day-by-day reinvestment plan and see what you'd earn over the period. Choose for each day: collect BTC, reinvest in GMT, or buy more TH.</p>
 
-                <!-- Mode toggle: Daily (existing) vs Monthly (new — 6-month projection) -->
-                <div style="margin-bottom:14px;">
-                    <label style="display:block;color:var(--text-dim);font-size:0.85em;margin-bottom:6px;" data-i18n="strategy_mode_label">Mode</label>
-                    <div class="period-selector" id="strategy-mode-selector" style="max-width:240px;">
-                        <button class="period-btn active" data-mode="daily"><span data-i18n="strategy_mode_daily">Daily</span></button>
-                        <button class="period-btn" data-mode="monthly"><span data-i18n="strategy_mode_monthly">Monthly</span></button>
+            <!-- HERO: title + intro + key controls + run button -->
+            <div class="strat-hero">
+                <div class="strat-hero-head">
+                    <div class="strat-hero-titles">
+                        <h1 class="strat-hero-title" data-i18n="sec_strategy_lab">🧪 Strategy Lab</h1>
+                        <p class="strat-hero-sub" data-i18n="strategy_intro">Build a day-by-day reinvestment plan and see what you'd earn over the period. Choose for each day: collect BTC, reinvest in GMT, or buy more TH.</p>
                     </div>
+                    <button id="strategy-run-btn" class="strat-run-btn">
+                        <span data-i18n="strategy_run">Run Simulation</span>
+                        <span class="strat-run-arrow">▶</span>
+                    </button>
                 </div>
-
-                <!-- Period selector — content swaps based on mode -->
-                <div style="margin-bottom:18px;">
-                    <label id="strategy-period-label" style="display:block;color:var(--text-dim);font-size:0.85em;margin-bottom:6px;" data-i18n="strategy_period">Period</label>
-                    <div class="period-selector" id="strategy-period-selector">
-                        <button class="period-btn active" data-period="7"><span data-i18n="strategy_period_7">7 days</span></button>
-                        <button class="period-btn" data-period="14"><span data-i18n="strategy_period_14">14 days</span></button>
-                        <button class="period-btn" data-period="30"><span data-i18n="strategy_period_30">30 days</span></button>
-                    </div>
-                    <div class="period-selector" id="strategy-monthly-selector" style="display:none;max-width:480px;">
-                        <button class="period-btn active" data-months="1">1 <span data-i18n="strategy_month_singular">month</span></button>
-                        <button class="period-btn" data-months="2">2 <span data-i18n="strategy_months">months</span></button>
-                        <button class="period-btn" data-months="3">3 <span data-i18n="strategy_months">months</span></button>
-                        <button class="period-btn" data-months="4">4 <span data-i18n="strategy_months">months</span></button>
-                        <button class="period-btn" data-months="5">5 <span data-i18n="strategy_months">months</span></button>
-                        <button class="period-btn" data-months="6">6 <span data-i18n="strategy_months">months</span></button>
-                    </div>
-                </div>
-
-                <!-- Quick fill buttons -->
-                <div style="margin-bottom:14px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
-                    <span style="color:var(--text-dim);font-size:0.85em;" data-i18n="strategy_quick_fill">Quick fill:</span>
-                    <button class="quick-fill-btn" data-fill="btc"><span style="color:var(--accent);">●</span> <span data-i18n="strategy_all_btc">All BTC</span></button>
-                    <button class="quick-fill-btn" data-fill="gmt"><span style="color:var(--purple);">●</span> <span data-i18n="strategy_all_gmt">All GMT</span></button>
-                    <button class="quick-fill-btn" data-fill="th"><span style="color:var(--green);">●</span> <span data-i18n="strategy_all_th">All TH</span></button>
-                </div>
-
-                <!-- Smart fill: cover fees first -->
-                <div style="margin-bottom:14px;padding:10px 12px;background:var(--bg2);border:1px dashed var(--border);border-radius:8px;">
-                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:6px;">
-                        <span style="font-size:0.85em;color:var(--text);font-weight:600;" data-i18n="strategy_smart_hint">Auto-fill: GMT-mining first to cover all fees, then switch to your target.</span>
-                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                            <button class="quick-fill-btn" onclick="smartFillStrategy('th','gmt')" style="background:rgba(46,204,113,0.12);border-color:var(--green);color:var(--green);"><span data-i18n="strategy_smart_th">⚖ GMT → TH</span></button>
-                            <button class="quick-fill-btn" onclick="smartFillStrategy('btc','gmt')" style="background:rgba(247,147,26,0.12);border-color:var(--accent);color:var(--accent);"><span data-i18n="strategy_smart_btc">⚖ GMT → BTC</span></button>
-                            <button class="quick-fill-btn" onclick="smartFillStrategy('th','btc')" style="background:rgba(46,204,113,0.12);border-color:var(--green);color:var(--green);"><span data-i18n="strategy_smart_btc_th">⚖ BTC → TH</span></button>
+                <div class="strat-hero-controls">
+                    <div class="strat-control-group">
+                        <label class="strat-control-label" data-i18n="strategy_mode_label">Mode</label>
+                        <div class="period-selector" id="strategy-mode-selector">
+                            <button class="period-btn active" data-mode="daily"><span data-i18n="strategy_mode_daily">Daily</span></button>
+                            <button class="period-btn" data-mode="monthly"><span data-i18n="strategy_mode_monthly">Monthly</span></button>
                         </div>
                     </div>
-                    <div id="strategy-smart-output" style="font-size:0.85em;color:var(--text-dim);margin-top:4px;"></div>
-                </div>
-
-                <!-- Day grid (calendar layout) -->
-                <div id="strategy-day-grid" style="display:flex;flex-direction:column;gap:6px;margin-bottom:18px;"></div>
-
-                <!-- Price overrides -->
-                <div class="section" style="background:var(--bg2);padding:14px;margin-bottom:14px;">
-                    <h3 style="margin:0 0 10px 0;font-size:1em;color:var(--text);" data-i18n="strategy_prices">Price Overrides (optional)</h3>
-                    <p style="font-size:0.8em;color:var(--text-dim);margin-bottom:10px;" data-i18n="strategy_prices_hint">Test scenarios — what if BTC pumps or GMT moves? Leave blank to use current snapshot.</p>
-                    <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));">
-                        <div class="form-group">
-                            <label data-i18n="strategy_btc_price">BTC Price ($)</label>
-                            <input type="number" id="strategy-btc-override" min="0" step="100" placeholder="" oninput="this.dataset.userEdited='1'">
-                            <span class="hint" id="strategy-btc-current"></span>
+                    <div class="strat-control-group">
+                        <label class="strat-control-label" id="strategy-period-label" data-i18n="strategy_period">Period</label>
+                        <div class="period-selector" id="strategy-period-selector">
+                            <button class="period-btn active" data-period="7"><span data-i18n="strategy_period_7">7 days</span></button>
+                            <button class="period-btn" data-period="14"><span data-i18n="strategy_period_14">14 days</span></button>
+                            <button class="period-btn" data-period="30"><span data-i18n="strategy_period_30">30 days</span></button>
                         </div>
-                        <div class="form-group">
-                            <label data-i18n="strategy_gmt_price">GMT Price ($)</label>
-                            <input type="number" id="strategy-gmt-override" min="0" step="0.001" placeholder="" oninput="this.dataset.userEdited='1'">
-                            <span class="hint" id="strategy-gmt-current"></span>
-                        </div>
-                        <div class="form-group">
-                            <label data-i18n="strategy_reinvest_cost">Reinvest cost per TH ($)</label>
-                            <input type="number" id="strategy-cost-per-th" min="1" step="0.5" value="12.34" oninput="this.dataset.userEdited='1'">
-                            <span class="hint" id="strategy-cost-current" data-i18n="strategy_reinvest_cost_hint">In-app upgrade rate (~$12.34) — used to compute TH gained when reinvesting</span>
-                        </div>
-                        <div class="form-group">
-                            <label data-i18n="strategy_market_th_price">Market TH price ($)</label>
-                            <input type="number" id="strategy-market-th-price" min="0.01" step="0.1" placeholder="optional" oninput="this.dataset.userEdited='1'">
-                            <span class="hint" data-i18n="strategy_market_th_price_hint">Live marketplace price (volatile, changes minute-to-minute). Used only for the asset paper-value display. Leave blank to fall back to reinvest cost.</span>
+                        <div class="period-selector" id="strategy-monthly-selector" style="display:none;">
+                            <button class="period-btn active" data-months="1">1 <span data-i18n="strategy_month_singular">month</span></button>
+                            <button class="period-btn" data-months="2">2 <span data-i18n="strategy_months">months</span></button>
+                            <button class="period-btn" data-months="3">3 <span data-i18n="strategy_months">months</span></button>
+                            <button class="period-btn" data-months="4">4 <span data-i18n="strategy_months">months</span></button>
+                            <button class="period-btn" data-months="5">5 <span data-i18n="strategy_months">months</span></button>
+                            <button class="period-btn" data-months="6">6 <span data-i18n="strategy_months">months</span></button>
                         </div>
                     </div>
                 </div>
-
-                <!-- Run button -->
-                <button class="btn btn-primary" id="strategy-run-btn" style="background:var(--a-strategy);color:#000;width:100%;font-weight:700;padding:12px;font-size:1em;" data-i18n="strategy_run">Run Simulation</button>
-
-                <!-- Results -->
-                <div id="strategy-results" style="display:none;margin-top:20px;"></div>
             </div>
+
+            <!-- FILL ACTIONS: quick + smart -->
+            <div class="strat-actions">
+                <div class="strat-actions-row">
+                    <span class="strat-actions-label" data-i18n="strategy_quick_fill">Quick fill</span>
+                    <button class="quick-fill-btn" data-fill="btc"><span class="qf-dot qf-dot--btc"></span><span data-i18n="strategy_all_btc">All BTC</span></button>
+                    <button class="quick-fill-btn" data-fill="gmt"><span class="qf-dot qf-dot--gmt"></span><span data-i18n="strategy_all_gmt">All GMT</span></button>
+                    <button class="quick-fill-btn" data-fill="th"><span class="qf-dot qf-dot--th"></span><span data-i18n="strategy_all_th">All TH</span></button>
+                </div>
+                <div class="strat-actions-row">
+                    <span class="strat-actions-label" data-i18n="strategy_smart_label">Smart fill</span>
+                    <button class="quick-fill-btn quick-fill-btn--smart-th" onclick="smartFillStrategy('th','gmt')"><span data-i18n="strategy_smart_th">⚖ GMT → TH</span></button>
+                    <button class="quick-fill-btn quick-fill-btn--smart-btc" onclick="smartFillStrategy('btc','gmt')"><span data-i18n="strategy_smart_btc">⚖ GMT → BTC</span></button>
+                    <button class="quick-fill-btn quick-fill-btn--smart-th" onclick="smartFillStrategy('th','btc')"><span data-i18n="strategy_smart_btc_th">⚖ BTC → TH</span></button>
+                </div>
+                <div id="strategy-smart-output" class="strat-smart-output"></div>
+            </div>
+
+            <!-- DAY GRID — the centerpiece -->
+            <div class="strat-grid-wrap">
+                <div id="strategy-day-grid" style="display:flex;flex-direction:column;gap:6px;"></div>
+            </div>
+
+            <!-- ADVANCED: price overrides (collapsible) -->
+            <details class="strat-advanced">
+                <summary class="strat-advanced-summary">
+                    <span class="strat-advanced-icon">⚙</span>
+                    <span data-i18n="strategy_prices">Price Overrides (optional)</span>
+                    <span class="strat-advanced-chev">▾</span>
+                </summary>
+                <p class="strat-advanced-desc" data-i18n="strategy_prices_hint">Test scenarios — what if BTC pumps or GMT moves? Leave blank to use current snapshot.</p>
+                <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">
+                    <div class="form-group">
+                        <label data-i18n="strategy_btc_price">BTC Price ($)</label>
+                        <input type="number" id="strategy-btc-override" min="0" step="100" placeholder="" oninput="this.dataset.userEdited='1'">
+                        <span class="hint" id="strategy-btc-current"></span>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="strategy_gmt_price">GMT Price ($)</label>
+                        <input type="number" id="strategy-gmt-override" min="0" step="0.001" placeholder="" oninput="this.dataset.userEdited='1'">
+                        <span class="hint" id="strategy-gmt-current"></span>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="strategy_reinvest_cost">Reinvest cost per TH ($)</label>
+                        <input type="number" id="strategy-cost-per-th" min="1" step="0.5" value="12.34" oninput="this.dataset.userEdited='1'">
+                        <span class="hint" id="strategy-cost-current" data-i18n="strategy_reinvest_cost_hint">In-app upgrade rate (~$12.34) — used to compute TH gained when reinvesting</span>
+                    </div>
+                    <div class="form-group">
+                        <label data-i18n="strategy_market_th_price">Market TH price ($)</label>
+                        <input type="number" id="strategy-market-th-price" min="0.01" step="0.1" placeholder="optional" oninput="this.dataset.userEdited='1'">
+                        <span class="hint" data-i18n="strategy_market_th_price_hint">Live marketplace price (volatile, changes minute-to-minute). Used only for the asset paper-value display. Leave blank to fall back to reinvest cost.</span>
+                    </div>
+                </div>
+            </details>
+
+            <!-- RESULTS (hidden until run) -->
+            <div id="strategy-results" style="display:none;margin-top:20px;"></div>
         </div>
 
         <div class="tab-content" id="tab-portfolio">
@@ -4249,7 +4254,7 @@ function renderCalendar(history, chartEl) {
                 strategy_intro: "Build a day-by-day reinvestment plan and see what you'd earn over the period. Choose for each day: collect BTC, reinvest in GMT, or buy more TH.",
                 strategy_period: 'Period',
                 strategy_period_7: '7 days', strategy_period_14: '14 days', strategy_period_30: '30 days',
-                strategy_quick_fill: 'Quick fill:',
+                strategy_quick_fill: 'Quick fill', strategy_smart_label: 'Smart fill',
                 strategy_all_btc: 'All BTC', strategy_all_gmt: 'All GMT', strategy_all_th: 'All TH',
                 strategy_prices: 'Price Overrides (optional)',
                 strategy_prices_hint: 'Test scenarios — what if BTC pumps or GMT moves? Leave blank to use current snapshot.',
@@ -4475,7 +4480,7 @@ function renderCalendar(history, chartEl) {
                 strategy_intro: "Construis un plan de réinvestissement jour par jour et vois combien tu gagnerais sur la période. Choisis pour chaque jour : collecter BTC, réinvestir en GMT, ou acheter du TH.",
                 strategy_period: 'Période',
                 strategy_period_7: '7 jours', strategy_period_14: '14 jours', strategy_period_30: '30 jours',
-                strategy_quick_fill: 'Remplir vite :',
+                strategy_quick_fill: 'Remplir vite', strategy_smart_label: 'Auto-fill',
                 strategy_all_btc: 'Tout BTC', strategy_all_gmt: 'Tout GMT', strategy_all_th: 'Tout TH',
                 strategy_prices: 'Prix personnalisés (optionnel)',
                 strategy_prices_hint: 'Teste des scénarios — que se passe-t-il si BTC monte ou si GMT bouge ? Laisse vide pour utiliser les prix actuels.',
