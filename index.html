@@ -542,16 +542,22 @@
                     <div class="dh-col dh-col--params">
                         <div class="dh-param-card">
                             <div class="dh-param-head">
-                                <span class="dh-param-icon dh-param-icon--btc" id="dh-price-icon">₿</span>
-                                <span class="dh-param-label" id="dh-price-label">BTC Price (USD)</span>
-                                <div class="dh-price-toggle" role="tablist" aria-label="Price source">
-                                    <button type="button" class="dh-pt-btn active" data-pmode="btc" onclick="setDhPriceMode('btc')" title="BTC price">₿</button>
-                                    <button type="button" class="dh-pt-btn" data-pmode="gmt" onclick="setDhPriceMode('gmt')" title="GMT price">G</button>
-                                </div>
+                                <span class="dh-param-icon dh-param-icon--btc">₿</span>
+                                <span class="dh-param-label" data-i18n="dh_btc_price">BTC Price (USD)</span>
                             </div>
                             <div class="dh-param-current" id="dh-price-current">—</div>
                             <div class="dh-param-track"><div class="dh-param-fill" id="dh-price-fill" style="width:50%"></div></div>
-                            <div class="dh-param-range" id="dh-price-range"><span>$20,000</span><span>$50,000</span><span>$80,000</span><span>$110,000</span><span>$130,000</span></div>
+                            <div class="dh-param-range"><span>$20,000</span><span>$50,000</span><span>$80,000</span><span>$110,000</span><span>$130,000</span></div>
+                        </div>
+
+                        <div class="dh-param-card">
+                            <div class="dh-param-head">
+                                <span class="dh-param-icon dh-param-icon--gmt">G</span>
+                                <span class="dh-param-label" data-i18n="dh_gmt_price">GMT Price (USD)</span>
+                            </div>
+                            <div class="dh-param-current" id="dh-gmt-current">—</div>
+                            <div class="dh-param-track"><div class="dh-param-fill" id="dh-gmt-fill" style="width:50%;background:linear-gradient(90deg, var(--purple), #d1a3ff);"></div></div>
+                            <div class="dh-param-range"><span>$0.00</span><span>$0.10</span><span>$0.20</span><span>$0.35</span><span>$0.50</span></div>
                         </div>
 
                         <div class="dh-param-card">
@@ -3922,6 +3928,7 @@ function renderCalendar(history, chartEl) {
                 kpi_wallet: 'Wallet', kpi_discount: 'Discount',
                 // Section titles
                 sec_monthly_goal: 'Monthly Goal',
+                dh_btc_price: 'BTC Price (USD)', dh_gmt_price: 'GMT Price (USD)',
                 sec_reward_history: 'Reward History', sec_price_alerts: 'Price Alerts', sec_portfolio: 'My Portfolio',
                 sec_add_invest: 'Add Investment', sec_staking: 'veGMT Lock Rewards', sec_breakdown: 'Breakdown',
                 sec_projection: 'Projection', sec_transactions: 'Transaction History',
@@ -4140,6 +4147,7 @@ function renderCalendar(history, chartEl) {
                 kpi_wallet: 'Portefeuille', kpi_discount: 'Discount',
                 // Section titles
                 sec_monthly_goal: 'Objectif Mensuel',
+                dh_btc_price: 'Prix BTC (USD)', dh_gmt_price: 'Prix GMT (USD)',
                 sec_reward_history: 'Historique des Rewards', sec_price_alerts: 'Alertes de Prix', sec_portfolio: 'Mon Portfolio',
                 sec_add_invest: 'Ajouter un investissement', sec_staking: 'Revenus veGMT Lock', sec_breakdown: 'Répartition',
                 sec_projection: 'Projection', sec_transactions: 'Historique des Transactions',
@@ -5055,39 +5063,12 @@ function renderCalendar(history, chartEl) {
         };
         const clampPct = (n, lo, hi) => Math.max(0, Math.min(100, ((n - lo) / (hi - lo)) * 100));
 
-        // BTC ⇄ GMT toggle — mirrors whichever price the user is interested in
-        // into the same hero card. Persisted across sessions.
-        const PRICE_MODES = {
-            btc: {
-                sourceId: 'btc-price',
-                min: 20000,
-                max: 130000,
-                rangeHtml: '<span>$20,000</span><span>$50,000</span><span>$80,000</span><span>$110,000</span><span>$130,000</span>',
-                icon: '₿',
-                iconClass: 'dh-param-icon dh-param-icon--btc',
-                label: 'BTC Price (USD)',
-                fillBg: '',  // empty = use CSS default (amber)
-            },
-            gmt: {
-                sourceId: 'gmt-price',
-                min: 0,
-                max: 0.50,
-                rangeHtml: '<span>$0.00</span><span>$0.10</span><span>$0.20</span><span>$0.35</span><span>$0.50</span>',
-                icon: 'G',
-                iconClass: 'dh-param-icon dh-param-icon--gmt',
-                label: 'GMT Price (USD)',
-                fillBg: 'linear-gradient(90deg, var(--purple), #d1a3ff)',
-            },
-        };
-        // Restore persisted mode on boot
-        try {
-            const stored = localStorage.getItem('dhPriceMode');
-            if (stored === 'btc' || stored === 'gmt') window.dhPriceMode = stored;
-        } catch (_) {}
-        if (!window.dhPriceMode) window.dhPriceMode = 'btc';
+        // Price card ranges — used by updateHero to fill the progress bars
+        const BTC_RANGE = { min: 20000, max: 130000 };
+        const GMT_RANGE = { min: 0, max: 0.50 };
 
-        // === Hash card modes (DIFF ⇄ PR) ===
-        // Same idea as PRICE_MODES — toggle the second card between
+// === Hash card modes (DIFF ⇄ PR) ===
+        // Toggle the second card between
         // network "difficulty" (actually hashrate stored on
         // #net-difficulty) and pool reward (#net-hashrate). Both source
         // IDs are misnamed in the legacy app but the data is correct.
@@ -5219,40 +5200,23 @@ function renderCalendar(history, chartEl) {
             updateHero();
         };
 
-        // Public toggle handler — wired from the card's BTC/GMT buttons
-        window.setDhPriceMode = function (mode) {
-            if (mode !== 'btc' && mode !== 'gmt') return;
-            window.dhPriceMode = mode;
-            try { localStorage.setItem('dhPriceMode', mode); } catch (_) {}
-            const cfg = PRICE_MODES[mode];
-            // Toggle button active state
-            document.querySelectorAll('.dh-pt-btn').forEach(b => {
-                b.classList.toggle('active', b.dataset.pmode === mode);
-            });
-            // Card chrome — icon, label, range labels, fill colour
-            const icon = $('dh-price-icon');
-            const label = $('dh-price-label');
-            const range = $('dh-price-range');
-            const fill = $('dh-price-fill');
-            if (icon) { icon.textContent = cfg.icon; icon.className = cfg.iconClass; }
-            if (label) label.textContent = (window.t && window.t('dh_' + mode + '_price')) || cfg.label;
-            if (range) range.innerHTML = cfg.rangeHtml;
-            if (fill) fill.style.background = cfg.fillBg;
-            // Refresh the value immediately
-            updateHero();
-        };
-
         function updateHero() {
-            // Price (BTC or GMT) — mode-aware, reads from the canonical KPI
-            const mode = window.dhPriceMode || 'btc';
-            const cfg = PRICE_MODES[mode] || PRICE_MODES.btc;
-            const priceText = readDom(cfg.sourceId);
-            if (priceText) {
-                if ($('dh-price-value'))   $('dh-price-value').textContent = priceText;
-                if ($('dh-price-current')) $('dh-price-current').textContent = priceText;
-                const v = numFromText(priceText);
+            // BTC price card
+            const btcText = readDom('btc-price');
+            if (btcText) {
+                if ($('dh-price-current')) $('dh-price-current').textContent = btcText;
+                const v = numFromText(btcText);
                 const fill = $('dh-price-fill');
-                if (fill && v != null) fill.style.width = clampPct(v, cfg.min, cfg.max).toFixed(1) + '%';
+                if (fill && v != null) fill.style.width = clampPct(v, BTC_RANGE.min, BTC_RANGE.max).toFixed(1) + '%';
+            }
+
+            // GMT price card
+            const gmtText = readDom('gmt-price');
+            if (gmtText) {
+                if ($('dh-gmt-current')) $('dh-gmt-current').textContent = gmtText;
+                const v = numFromText(gmtText);
+                const fill = $('dh-gmt-fill');
+                if (fill && v != null) fill.style.width = clampPct(v, GMT_RANGE.min, GMT_RANGE.max).toFixed(1) + '%';
             }
 
             // Hash card (DIFF or PR) — mode-aware; mirrors whichever
@@ -5526,9 +5490,6 @@ function renderCalendar(history, chartEl) {
         // so reload restores the user's last toggle position visually.
         setTimeout(() => {
             try {
-                if (window.dhPriceMode && window.dhPriceMode !== 'btc') {
-                    window.setDhPriceMode(window.dhPriceMode);
-                }
                 if (window.dhHashMode && window.dhHashMode !== 'diff') {
                     window.setDhHashMode(window.dhHashMode);
                 }
