@@ -4464,7 +4464,7 @@ function renderCalendar(history, chartEl) {
                 // Portfolio
                 lbl_staking_weekly: 'GMT Received / Week (veGMT lock)', hint_staking_weekly: 'Auto-filled from extension (visit your veGMT lock page)',
                 lbl_date: 'Date', lbl_category: 'Category', lbl_amount: 'Amount', lbl_currency: 'Currency',
-                lbl_th_added: 'TH Added', hint_th_added: 'Auto-updated in the simulator', lbl_note: 'Note', btn_add: '+ Add',
+                lbl_th_added: 'TH Added', hint_th_added: 'For your records — the simulator hashrate is auto-synced from GoMining', lbl_note: 'Note', btn_add: '+ Add',
                 cat_nft: '⛏ Buy NFT', cat_upgrade: '⬆ Upgrade TH', cat_upgrade_wth: '⚡ Upgrade W/TH', cat_lock: '🔒 Lock GMT', cat_staking: '💎 Staking veGMT', cat_other: '📦 Other',
                 cat_nft_label: 'Buy NFT', cat_upgrade_label: 'Upgrade TH', cat_upgrade_wth_label: 'Upgrade W/TH',
                 cat_lock_label: 'Lock GMT', cat_staking_label: 'Staking veGMT', cat_other_label: 'Other',
@@ -4696,7 +4696,7 @@ function renderCalendar(history, chartEl) {
                 // Portfolio
                 lbl_staking_weekly: 'GMT reçus / semaine (lock veGMT)', hint_staking_weekly: "Auto-rempli depuis l'extension (visite ta page veGMT lock)",
                 lbl_date: 'Date', lbl_category: 'Catégorie', lbl_amount: 'Montant', lbl_currency: 'Devise',
-                lbl_th_added: 'TH ajoutés', hint_th_added: 'Mis à jour auto dans le simulateur', lbl_note: 'Note', btn_add: '+ Ajouter',
+                lbl_th_added: 'TH ajoutés', hint_th_added: 'Pour ton historique — le hashrate du simulateur est sync auto depuis GoMining', lbl_note: 'Note', btn_add: '+ Ajouter',
                 cat_nft: '⛏ Achat NFT', cat_upgrade: '⬆ Upgrade TH', cat_upgrade_wth: '⚡ Upgrade W/TH',
                 cat_lock: '🔒 Lock GMT', cat_staking: '💎 Staking veGMT', cat_other: '📦 Autre',
                 cat_nft_label: 'Achat NFT', cat_upgrade_label: 'Upgrade TH', cat_upgrade_wth_label: 'Upgrade W/TH',
@@ -5060,15 +5060,11 @@ function renderCalendar(history, chartEl) {
             txs.sort((a, b) => a.date.localeCompare(b.date));
             saveTransactions(txs);
 
-            // Auto-update hashrate seulement si c'est une transaction d'aujourd'hui (pas un historique)
-            const today = new Date().toISOString().substring(0, 10);
-            if (thAdded > 0 && date === today) {
-                const hrEl = document.getElementById('hashrate');
-                const currentTH = parseFloat(hrEl.value) || 0;
-                hrEl.value = currentTH + thAdded;
-                saveSettings();
-                if (state.btcPrice) calculate();
-            }
+            // Note: we no longer auto-bump the simulator hashrate here.
+            // The extension auto-syncs the live hashrate from GoMining, so
+            // adding it manually would double-count after the next sync.
+            // The `tx.th` value is preserved on the transaction for audit /
+            // portfolio breakdown only.
 
             // Reset form
             document.getElementById('tx-amount').value = '';
