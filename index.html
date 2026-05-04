@@ -629,33 +629,15 @@
                             </div>
                         </div>
 
-                        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:stretch;">
-                            <div class="dh-timeline-card" id="dash-history-section" style="flex:1 1 380px;min-width:0;">
-                                <div class="dh-timeline-head">
-                                    <h3 class="dh-timeline-title" data-i18n="sec_reward_history">Reward History</h3>
-                                    <span class="dh-history-staleness" id="dh-history-staleness" style="display:none;"></span>
-                                </div>
-                                <div id="dash-history-chart" style="position:relative;flex:1;min-height:200px;">
-                                    <div id="dash-history-empty" style="text-align:center;padding:36px 20px;color:var(--text-dim);">
-                                        <div style="font-size:2em;margin-bottom:10px;">📅</div>
-                                        <div data-i18n="cal_empty">Sync your GoMining data to see your reward history calendar.</div>
-                                    </div>
-                                </div>
+                        <div class="dh-timeline-card" id="dash-history-section">
+                            <div class="dh-timeline-head">
+                                <h3 class="dh-timeline-title" data-i18n="sec_reward_history">Reward History</h3>
+                                <span class="dh-history-staleness" id="dh-history-staleness" style="display:none;"></span>
                             </div>
-                            <div class="section" id="dash-goal-section" style="margin:0;flex:0 1 280px;min-width:240px;">
-                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:8px;flex-wrap:wrap;">
-                                    <h2 style="margin:0;border:none;padding:0;font-size:1em;" data-i18n="sec_monthly_goal">Monthly Goal</h2>
-                                    <div class="form-group" style="flex-direction:row;align-items:center;gap:6px;margin:0;">
-                                        <label style="margin:0;white-space:nowrap;font-size:0.8em;" data-i18n="lbl_objective">Objective $</label>
-                                        <input type="number" id="monthly-goal" value="20" min="1" step="5" style="width:70px;padding:4px 8px;">
-                                    </div>
-                                </div>
-                                <div style="background:var(--bg2);border-radius:8px;height:24px;overflow:hidden;position:relative;">
-                                    <div id="goal-bar" style="height:100%;border-radius:8px;background:linear-gradient(90deg,var(--green),var(--accent2));transition:width 0.8s ease;width:0%;"></div>
-                                </div>
-                                <div style="display:flex;flex-direction:column;gap:4px;margin-top:8px;font-size:0.8em;">
-                                    <span id="goal-current" style="color:var(--green);font-weight:600;"></span>
-                                    <span id="goal-remaining" style="color:var(--text-dim);"></span>
+                            <div id="dash-history-chart" style="position:relative;flex:1;min-height:200px;">
+                                <div id="dash-history-empty" style="text-align:center;padding:36px 20px;color:var(--text-dim);">
+                                    <div style="font-size:2em;margin-bottom:10px;">📅</div>
+                                    <div data-i18n="cal_empty">Sync your GoMining data to see your reward history calendar.</div>
                                 </div>
                             </div>
                         </div>
@@ -692,6 +674,23 @@
                         </div>
 
                         <button class="dh-load-btn" onclick="switchTab('scenarios')" data-i18n="dh_load_scenario">Load Scenario</button>
+
+                        <div class="dh-card" id="dash-goal-section">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap;">
+                                <h3 class="dh-card-title" style="margin:0;" data-i18n="sec_monthly_goal">Monthly Goal</h3>
+                                <div class="form-group" style="flex-direction:row;align-items:center;gap:6px;margin:0;">
+                                    <label style="margin:0;white-space:nowrap;font-size:0.8em;" data-i18n="lbl_objective">Objective $</label>
+                                    <input type="number" id="monthly-goal" value="20" min="1" step="5" style="width:70px;padding:4px 8px;">
+                                </div>
+                            </div>
+                            <div style="background:var(--bg2);border-radius:8px;height:20px;overflow:hidden;position:relative;">
+                                <div id="goal-bar" style="height:100%;border-radius:8px;background:linear-gradient(90deg,var(--green),var(--accent2));transition:width 0.8s ease;width:0%;"></div>
+                            </div>
+                            <div style="display:flex;flex-direction:column;gap:4px;margin-top:8px;font-size:0.8em;">
+                                <span id="goal-current" style="color:var(--green);font-weight:600;"></span>
+                                <span id="goal-remaining" style="color:var(--text-dim);"></span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
