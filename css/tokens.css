@@ -111,6 +111,80 @@ body {
     background-size: var(--bg-dot-size) var(--bg-dot-size);
     background-attachment: fixed;
     background-position: 0 0;
+    position: relative;
+}
+
+/* =============================================================
+   Animated background orbs — subtle drifting color spheres that
+   give the page depth without distracting from content. They're
+   fixed to the viewport (don't scroll), pointer-events disabled,
+   and stack below all UI (z-index: -1).
+   ============================================================= */
+body::before,
+body::after {
+    content: "";
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.45;
+    pointer-events: none;
+    z-index: -1;
+    will-change: transform;
+}
+body::before {
+    width: 620px;
+    height: 620px;
+    top: -160px;
+    left: -120px;
+    background: radial-gradient(circle, rgba(247, 147, 26, 0.55) 0%, transparent 70%);
+    animation: bg-orb-drift-a 32s ease-in-out infinite;
+}
+body::after {
+    width: 720px;
+    height: 720px;
+    bottom: -200px;
+    right: -180px;
+    background: radial-gradient(circle, rgba(163, 113, 247, 0.50) 0%, transparent 70%);
+    animation: bg-orb-drift-b 40s ease-in-out infinite;
+}
+.app-bg-orb {
+    position: fixed;
+    width: 540px;
+    height: 540px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(63, 185, 80, 0.45) 0%, transparent 70%);
+    filter: blur(110px);
+    opacity: 0.40;
+    pointer-events: none;
+    z-index: -1;
+    top: 35%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    animation: bg-orb-drift-c 36s ease-in-out infinite;
+    will-change: transform;
+}
+@keyframes bg-orb-drift-a {
+    0%, 100% { transform: translate(0, 0)        scale(1);    }
+    33%      { transform: translate(120px, 80px) scale(1.12); }
+    66%      { transform: translate(60px, 160px) scale(0.92); }
+}
+@keyframes bg-orb-drift-b {
+    0%, 100% { transform: translate(0, 0)          scale(1);    }
+    40%      { transform: translate(-140px, -90px) scale(1.08); }
+    75%      { transform: translate(-60px, -180px) scale(0.95); }
+}
+@keyframes bg-orb-drift-c {
+    0%, 100% { transform: translate(-50%, -50%)                          scale(1);    }
+    50%      { transform: translate(calc(-50% + 80px), calc(-50% - 60px)) scale(1.15); }
+}
+
+/* Honour reduced-motion users */
+@media (prefers-reduced-motion: reduce) {
+    body::before,
+    body::after,
+    .app-bg-orb {
+        animation: none;
+    }
 }
 
 /* =============================================================
