@@ -3348,11 +3348,13 @@
             const gp = state.gmtPrice || 0;
 
             if (mode === 'btc') {
-                el.textContent = btcBalance.toFixed(8) + ' BTC';
+                const usd = btcBalance * bp;
+                el.innerHTML = btcBalance.toFixed(8) + ' BTC <span style="color:var(--text-dim);font-weight:500;font-size:0.6em;">($' + usd.toFixed(2) + ')</span>';
                 el.className = 'value btc';
                 el.style.fontSize = '1.3em';
             } else if (mode === 'gmt') {
-                el.textContent = gmtWallet.toFixed(2) + ' GMT';
+                const usd = gmtWallet * gp;
+                el.innerHTML = gmtWallet.toFixed(2) + ' GMT <span style="color:var(--text-dim);font-weight:500;font-size:0.6em;">($' + usd.toFixed(2) + ')</span>';
                 el.className = 'value gmt';
                 el.style.fontSize = '1.3em';
             } else { // cash
