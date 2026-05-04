@@ -644,7 +644,7 @@
                     <!-- RIGHT COLUMN: Daily Fees + Breakeven + Monthly Goal -->
                     <div class="dh-col dh-col--scenarios">
                         <div class="dh-card" id="dash-daily-fees-card">
-                            <div class="dh-card-title" style="text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);font-size:0.78em;margin-bottom:8px;" data-i18n="lbl_daily_fees">Daily Fees GMT</div>
+                            <div class="dh-card-title" style="text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);font-size:0.78em;margin-bottom:8px;" data-i18n="lbl_daily_fees">Daily Fees</div>
                             <div id="dash-daily-fees" style="color:var(--red);font-size:1.6em;font-weight:700;font-variant-numeric:tabular-nums;">--</div>
                         </div>
                         <div class="dh-card" id="dash-breakeven-card">
@@ -2458,8 +2458,10 @@
             const investValue = hashrate * (parseFloat(document.getElementById('cost-per-th-upgrade').value) || 12.34);
             const annualNet = r.netUsd * 365;
             document.getElementById('dash-roi').textContent = investValue > 0 ? (annualNet / investValue * 100).toFixed(1) + '%' : '--';
-            // Daily fees
-            document.getElementById('dash-daily-fees').textContent = r.feesGmt.toFixed(2) + ' GMT';
+            // Daily fees — display unit follows the fee-mode toggle
+            document.getElementById('dash-daily-fees').textContent = state.feeMode === 'btc'
+                ? r.feesBtc.toFixed(8) + ' BTC'
+                : r.feesGmt.toFixed(2) + ' GMT';
 
             // === Show calendar on dashboard if we have history ===
             if (state.rewardHistory?.length > 0) {
@@ -4115,7 +4117,7 @@
                 port_active_days: 'Active Days', port_daily_avg: 'Avg Gain / Day',
                 port_payback: 'Investment Payback', port_asset_value: 'Asset Value', port_paid_back: 'Paid Back!',
                 // Labels
-                lbl_breakeven: 'Breakeven BTC', lbl_days_next: 'Days to Next Level', lbl_roi: 'Est. Annual ROI', lbl_daily_fees: 'Daily Fees GMT',
+                lbl_breakeven: 'Breakeven BTC', lbl_days_next: 'Days to Next Level', lbl_roi: 'Est. Annual ROI', lbl_daily_fees: 'Daily Fees',
                 lbl_objective: 'Objective $', lbl_today_label: 'today',
                 alerts_desc: 'Set price thresholds and get notified when they are triggered.',
                 mob_scenarios: 'Scenarios',
@@ -4339,7 +4341,7 @@
                 port_active_days: 'Jours actifs', port_daily_avg: 'Gain moyen / jour',
                 port_payback: 'Retour investissement', port_asset_value: 'Valeur actifs', port_paid_back: 'Remboursé !',
                 // Labels
-                lbl_breakeven: 'Breakeven BTC', lbl_days_next: 'Jours prochain level', lbl_roi: 'ROI annuel estimé', lbl_daily_fees: 'Frais GMT / jour',
+                lbl_breakeven: 'Breakeven BTC', lbl_days_next: 'Jours prochain level', lbl_roi: 'ROI annuel estimé', lbl_daily_fees: 'Frais quotidiens',
                 lbl_objective: 'Objectif $', lbl_today_label: "aujourd'hui",
                 alerts_desc: "Configurez des seuils de prix et recevez une notification quand ils sont dépassés.",
                 mob_scenarios: 'Scénarios',
