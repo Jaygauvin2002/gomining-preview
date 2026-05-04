@@ -685,29 +685,13 @@
                     </div>
                 </div>
 
-                <!-- "Show details" toggle: collapses/expands the existing detail sections below -->
-                <div class="dh-details-toggle">
-                    <button onclick="toggleDashboardDetails()" id="dh-details-btn" class="dh-details-btn" aria-expanded="true">
-                        <span data-i18n="dh_hide_details">Hide detailed dashboard</span>
-                        <span class="dh-details-chev">▾</span>
-                    </button>
-                </div>
             </section>
             <!-- ===== END HERO ===== -->
 
-            <!-- Wrapper for the existing detail sections — collapsed via the toggle above -->
-            <div id="dashboard-details" class="dashboard-details">
-
-            <!-- Empty state (shown when no data) -->
-            <div id="empty-state" style="display:none;text-align:center;padding:40px 20px;">
-                <div style="font-size:3em;margin-bottom:15px;">⛏</div>
-                <h2 style="color:var(--accent);margin-bottom:10px;" data-i18n="empty_title">Welcome to GMSim</h2>
-                <p style="color:var(--text-dim);margin-bottom:20px;max-width:500px;margin-left:auto;margin-right:auto;" data-i18n="empty_desc">Install the Chrome extension and visit app.gomining.com to auto-sync your miner data. Or enter your details manually in the Simulator tab.</p>
-                <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
-                    <button class="onboarding-btn" onclick="showExtensionGuide()" data-i18n="empty_guide">Install Extension</button>
-                    <button class="onboarding-btn" style="background:var(--accent2);" onclick="switchTab('mining')" data-i18n="empty_manual">Enter Manually</button>
-                </div>
-            </div>
+            <!-- Hidden KPI mirrors — kept in the DOM so the hero population JS
+                 (readDom) can still pull values; the visible UI is now just the
+                 hero + the "Enter manually" trigger below. -->
+            <div id="dashboard-details" class="dashboard-details" style="display:none;">
 
             <!-- Row 1: 5 KPIs -->
             <div id="live-dashboard" class="live-data" style="grid-template-columns:repeat(5,1fr);margin-bottom:12px;">
@@ -763,6 +747,8 @@
             </div>
             <div style="display:none;" id="net-difficulty">--</div>
             <div id="dash-ticker" style="display:none;"></div>
+
+            </div><!-- /#dashboard-details (hidden DOM mirrors for hero population) -->
 
             <!-- "Enter manually" trigger — opens modal with full NFT Miner Parameters + prices -->
             <div style="display:flex;justify-content:center;margin:16px 0 8px 0;">
@@ -853,9 +839,6 @@
                     </div>
                 </div>
             </div>
-
-            </div><!-- /#dashboard-details (toggle only collapses the KPI rows + manual-entry above) -->
-
 
             <!-- Reward Calendar moved into the hero (same IDs preserved
                  there so the inline app keeps rendering into them). -->
@@ -4034,8 +4017,6 @@ function renderCalendar(history, chartEl) {
                 guide_s6: 'Visit <strong>app.gomining.com</strong> — the extension icon should appear',
                 guide_s7: 'Navigate to your miner rewards page, then come back here. Data syncs automatically!',
                 disclaimer: 'This tool provides estimates only and is not financial advice. Calculations are based on current conditions and may not reflect actual returns. DYOR.',
-                empty_title: 'Welcome to GMSim', empty_desc: 'Install the Chrome extension and visit app.gomining.com to auto-sync your miner data. Or enter your details manually in the Simulator tab.',
-                empty_guide: 'Install Extension', empty_manual: 'Enter Manually',
                 footer_text: 'GMSim', footer_disclaimer: 'Not financial advice. Use at your own risk.',
                 // JS dynamic strings
                 loading: 'Loading...', refresh_data: 'Refresh Data', last_update: 'Last update',
@@ -4255,8 +4236,6 @@ function renderCalendar(history, chartEl) {
                 guide_s6: 'Visitez <strong>app.gomining.com</strong> — l\'icône de l\'extension devrait apparaître',
                 guide_s7: 'Naviguez vers votre page de rewards, puis revenez ici. Les données se synchronisent automatiquement !',
                 disclaimer: "Cet outil fournit des estimations uniquement et ne constitue pas un conseil financier. Les calculs sont basés sur les conditions actuelles. Faites vos propres recherches.",
-                empty_title: 'Bienvenue sur GMSim', empty_desc: "Installez l'extension Chrome et visitez app.gomining.com pour synchroniser vos données. Ou entrez vos détails manuellement dans l'onglet Simulateur.",
-                empty_guide: "Installer l'extension", empty_manual: 'Entrer manuellement',
                 footer_text: 'GMSim', footer_disclaimer: "Pas un conseil financier. Utilisez à vos risques.",
                 // JS dynamic strings
                 loading: 'Chargement...', refresh_data: 'Rafraîchir les données', last_update: 'Dernière mise à jour',
@@ -4368,8 +4347,10 @@ function renderCalendar(history, chartEl) {
 
         // ===== EMPTY STATE =====
         function updateEmptyState() {
+            const el = document.getElementById('empty-state');
+            if (!el) return;
             const hasData = state.btcPrice > 0 && state.lastCalc;
-            document.getElementById('empty-state').style.display = hasData ? 'none' : 'block';
+            el.style.display = hasData ? 'none' : 'block';
         }
 
         // ===== INPUT VALIDATION =====
@@ -5051,21 +5032,6 @@ function renderCalendar(history, chartEl) {
          ========================================================= -->
     <script>
     (function () {
-        // --- Show / hide detailed dashboard ---
-        window.toggleDashboardDetails = function () {
-            const wrap = document.getElementById('dashboard-details');
-            const btn  = document.getElementById('dh-details-btn');
-            const labelEl = btn?.querySelector('span[data-i18n]');
-            if (!wrap || !btn) return;
-            const collapsed = wrap.classList.toggle('collapsed');
-            btn.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
-            if (labelEl) {
-                labelEl.textContent = collapsed
-                    ? (window.t ? window.t('dh_show_details') || 'Show detailed dashboard' : 'Show detailed dashboard')
-                    : (window.t ? window.t('dh_hide_details') || 'Hide detailed dashboard' : 'Hide detailed dashboard');
-            }
-        };
-
 // --- Mirror dashboard values into the hero cards ---
         // We READ from the existing populated DOM elements (the canonical
         // KPI displays the inline app maintains). This keeps the hero in

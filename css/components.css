@@ -1441,52 +1441,6 @@ body.has-live-footer .main-content { padding-bottom: 64px; }
     flex-shrink: 0;
 }
 
-/* --- "Show / hide details" toggle --- */
-.dh-details-toggle {
-    display: flex;
-    justify-content: center;
-    margin-top: 22px;
-}
-.dh-details-btn {
-    background: var(--surface-1);
-    border: 1px solid var(--border);
-    color: var(--text-dim);
-    padding: 8px 16px;
-    border-radius: var(--r-pill);
-    cursor: pointer;
-    font-size: var(--fs-sm);
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: color var(--t-fast), border-color var(--t-fast);
-}
-.dh-details-btn:hover {
-    color: var(--text);
-    border-color: var(--border-strong);
-}
-.dh-details-chev {
-    font-size: 0.7em;
-    transition: transform var(--t-fast);
-}
-.dashboard-details.collapsed .dh-details-chev,
-.dh-details-btn[aria-expanded="false"] .dh-details-chev {
-    transform: rotate(-90deg);
-}
-
-.dashboard-details {
-    transition: opacity var(--t-slow), max-height var(--t-slow);
-    overflow: hidden;
-    max-height: 8000px;
-}
-.dashboard-details.collapsed {
-    max-height: 0;
-    opacity: 0;
-    margin: 0;
-    padding: 0;
-}
-
-
 /* =============================================================
    30. RESPONSIVE — collapse top-nav for narrow viewports
    ============================================================= */
