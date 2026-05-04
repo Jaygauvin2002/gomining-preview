@@ -3007,14 +3007,28 @@ function renderCalendar(history, chartEl) {
             html += '<span><span style="display:inline-block;width:10px;height:10px;background:var(--green);border-radius:2px;"></span> TH</span>';
             html += '</div>';
 
-            // Calculate weekly totals
-            const weeklyTotals = {};
+            // Calculate weekly NET totals.
+            // Net = gross reward − (electricity + service) fees, computed via
+            // computeDayNetGmt and converted to BTC at each day's historical
+            // prices so USD reflects what was actually received that week
+            // (not today's BTC price).
+            const weeklyTotalsBtc = {};
+            const weeklyTotalsUsd = {};
             for (const day of history) {
                 const d = new Date(day.date + 'T00:00:00');
                 const weekStart = new Date(d);
                 weekStart.setDate(d.getDate() - ((d.getDay() + 6) % 7));
                 const weekKey = weekStart.toISOString().substring(0, 10);
-                weeklyTotals[weekKey] = (weeklyTotals[weekKey] || 0) + day.valueBtc;
+
+                const netGmt = computeDayNetGmt(day);
+                const gmtP = day.gmtPrice || state.gmtPrice || 0;
+                const btcP = day.btcPrice || state.btcPrice || 0;
+                if (!netGmt || !gmtP || !btcP) continue;
+                const netUsd = netGmt * gmtP;
+                const netBtc = netUsd / btcP;
+
+                weeklyTotalsBtc[weekKey] = (weeklyTotalsBtc[weekKey] || 0) + netBtc;
+                weeklyTotalsUsd[weekKey] = (weeklyTotalsUsd[weekKey] || 0) + netUsd;
             }
 
             // Calendar grid with weekly total column
@@ -3081,14 +3095,14 @@ function renderCalendar(history, chartEl) {
                 }
 
                 weekDayCount++;
-                // End of week (Sunday) — add weekly total cell
+                // End of week (Sunday) — add weekly NET total cell
                 if (weekDayCount % 7 === 0) {
-                    const wTotal = weeklyTotals[currentWeekKey] || 0;
-                    if (wTotal > 0) {
-                        const wUsd = wTotal * (state.btcPrice || 0);
+                    const wBtc = weeklyTotalsBtc[currentWeekKey] || 0;
+                    const wUsd = weeklyTotalsUsd[currentWeekKey] || 0;
+                    if (wBtc > 0) {
                         html += `<div style="background:rgba(247,147,26,0.06);border:1px solid rgba(247,147,26,0.15);border-radius:6px;padding:4px;min-height:55px;display:flex;flex-direction:column;align-items:center;justify-content:center;">
                             <div style="font-size:0.7em;font-weight:700;color:var(--accent);">${formatUSD(wUsd)}</div>
-                            <div style="font-size:0.55em;color:var(--text-dim);">${wTotal.toFixed(8)}</div>
+                            <div style="font-size:0.55em;color:var(--text-dim);">${wBtc.toFixed(8)}</div>
                         </div>`;
                     } else {
                         html += '<div style="min-height:55px;"></div>';
