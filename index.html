@@ -3154,9 +3154,6 @@
             html += '<span><span style="display:inline-block;width:10px;height:10px;background:var(--green);border-radius:2px;"></span> TH</span>';
             html += '</div>';
 
-            // Detect anomalies
-            const anomalyDates = new Set(detectAnomalies(history).map(a => a.date));
-
             // Calculate weekly totals
             const weeklyTotals = {};
             for (const day of history) {
@@ -3191,8 +3188,6 @@
                 wk.setDate(current.getDate() - ((current.getDay() + 6) % 7));
                 currentWeekKey = wk.toISOString().substring(0, 10);
 
-                const isAnomaly = anomalyDates.has(dateStr);
-
                 if (day) {
                     const type = getRewardTypeLabel(day);
                     const color = getRewardTypeColor(day);
@@ -3217,9 +3212,7 @@
                         valueText = '+' + thGained.toFixed(3);
                     }
 
-                    const anomalyBadge = isAnomaly ? '<div style="position:absolute;top:2px;right:4px;font-size:0.6em;" title="Anomalie détectée">⚠</div>' : '';
-                    html += `<div style="background:var(--bg);border:2px solid ${color};border-radius:6px;padding:4px;min-height:55px;position:relative;${isAnomaly ? 'box-shadow:0 0 8px rgba(248,81,73,0.3);' : ''}">
-                        ${anomalyBadge}
+                    html += `<div style="background:var(--bg);border:2px solid ${color};border-radius:6px;padding:4px;min-height:55px;position:relative;">
                         <div style="font-size:0.65em;color:var(--text-dim);">${dayNum}</div>
                         <div style="font-size:0.7em;font-weight:700;color:${color};margin-top:2px;">${valueText}</div>
                         <div style="font-size:0.6em;color:var(--text-dim);margin-top:1px;">${type}</div>
@@ -3973,35 +3966,6 @@
 
         document.getElementById('monthly-goal')?.addEventListener('change', () => { updateMonthlyGoal(); saveSettings(); });
 
-        // ===== ANOMALY DETECTION =====
-        function detectAnomalies(history) {
-            if (!history || history.length < 5) return [];
-            // Anomaly = the day's value diverges from the median by more
-            // than the threshold below. Median is more robust than mean
-            // when a few extreme days (TH-reinvest with valueBtc 0, or
-            // empty / promo days) skew the average. Threshold 50% — BTC
-            // mining variance of 30–40% day-to-day is normal pool luck,
-            // we only want to flag genuine outliers.
-            const ANOMALY_THRESHOLD = 0.5;
-            const values = history.map(d => d.valueBtc).filter(v => v > 0).sort((a, b) => a - b);
-            if (values.length < 3) return [];
-            const median = values[Math.floor(values.length / 2)];
-            if (!median) return [];
-            const anomalies = [];
-            history.forEach(day => {
-                if (!day.valueBtc || day.valueBtc === 0) return;
-                const ecart = (day.valueBtc - median) / median;
-                if (Math.abs(ecart) > ANOMALY_THRESHOLD) {
-                    anomalies.push({
-                        date: day.date,
-                        value: day.valueBtc,
-                        ecart: ecart,
-                        type: ecart > 0 ? 'high' : 'low'
-                    });
-                }
-            });
-            return anomalies;
-        }
 
         // ===== CHANGE LOG =====
         const CHANGELOG_KEY = 'gomining_changelog';
