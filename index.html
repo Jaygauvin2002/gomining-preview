@@ -928,13 +928,13 @@
                 </div>
                 <div class="scn-hero-card scn-hero--bear">
                     <div class="scn-hero-label" data-i18n="scn_bear">Bear case</div>
-                    <div class="scn-hero-price" id="scn-bear-price">$30,000</div>
+                    <div class="scn-hero-price" id="scn-bear-price">—</div>
                     <div class="scn-hero-net" id="scn-bear-net">—</div>
                     <div class="scn-hero-meta" id="scn-bear-meta">—</div>
                 </div>
                 <div class="scn-hero-card scn-hero--bull">
                     <div class="scn-hero-label" data-i18n="scn_bull">Bull case</div>
-                    <div class="scn-hero-price" id="scn-bull-price">$150,000</div>
+                    <div class="scn-hero-price" id="scn-bull-price">—</div>
                     <div class="scn-hero-net" id="scn-bull-net">—</div>
                     <div class="scn-hero-meta" id="scn-bull-meta">—</div>
                 </div>
@@ -1982,11 +1982,12 @@
             const c = state.lastCalc;
             if (!c) return;
 
-            // === Hero stats: current / bear ($30k) / bull ($150k) ===
+            // === Hero stats: current / bear (-$20k) / bull (+$20k) ===
+            const cur = state.btcPrice || 0;
             const heroPrices = [
-                { id: 'current', price: state.btcPrice || 0 },
-                { id: 'bear',    price: 30000 },
-                { id: 'bull',    price: 150000 },
+                { id: 'current', price: cur },
+                { id: 'bear',    price: Math.max(0, cur - 20000) },
+                { id: 'bull',    price: cur + 20000 },
             ];
             const currentDailyNet = calcDailyReward(c.hashrate, c.efficiency, c.elecCost, c.discount, state.btcPrice, c.satPerTH);
             heroPrices.forEach(({ id, price }) => {
