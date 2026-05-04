@@ -44,14 +44,20 @@ function initStrategyLab() {
             const dailySel = document.getElementById('strategy-period-selector');
             const monthlySel = document.getElementById('strategy-monthly-selector');
             const label = document.getElementById('strategy-period-label');
+            const stepTitle = document.getElementById('strategy-step2-title');
+            const stepSub   = document.getElementById('strategy-step2-sub');
             if (strategyMode === 'monthly') {
                 dailySel.style.display = 'none';
                 monthlySel.style.display = 'flex';
                 if (label) label.textContent = t('strategy_monthly_label') || 'Editable months — fewer than 6 = pattern repeats to fill the projection';
+                if (stepTitle) stepTitle.textContent = t('strategy_step2_title_weekly') || 'Tune week-by-week';
+                if (stepSub)   stepSub.textContent   = t('strategy_step2_sub_weekly')   || 'Click any cell to cycle through BTC / GMT / TH for that week.';
             } else {
                 dailySel.style.display = 'flex';
                 monthlySel.style.display = 'none';
                 if (label) label.textContent = t('strategy_period') || 'Period';
+                if (stepTitle) stepTitle.textContent = t('strategy_step2_title') || 'Tune day-by-day';
+                if (stepSub)   stepSub.textContent   = t('strategy_step2_sub')   || 'Click any cell to cycle through BTC / GMT / TH for that day.';
             }
             rebuildStrategyGrid();
         });

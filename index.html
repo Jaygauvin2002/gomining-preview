@@ -1297,8 +1297,8 @@
                 <div class="strat-step-head">
                     <span class="strat-step-num">2</span>
                     <div>
-                        <h3 class="strat-step-title" data-i18n="strategy_step2_title">Tune day-by-day</h3>
-                        <p class="strat-step-sub" data-i18n="strategy_step2_sub">Click any cell to cycle through BTC / GMT / TH for that day.</p>
+                        <h3 class="strat-step-title" id="strategy-step2-title" data-i18n="strategy_step2_title">Tune day-by-day</h3>
+                        <p class="strat-step-sub" id="strategy-step2-sub" data-i18n="strategy_step2_sub">Click any cell to cycle through BTC / GMT / TH for that day.</p>
                     </div>
                     <div class="strat-legend">
                         <span><span class="qf-dot qf-dot--btc"></span>BTC</span>
@@ -4284,6 +4284,7 @@ function renderCalendar(history, chartEl) {
                 strategy_eyebrow: 'Lab · Plan & Project',
                 strategy_step1_title: 'Pre-fill the plan', strategy_step1_sub: 'Use a quick fill or let smart-fill cover your fees first.',
                 strategy_step2_title: 'Tune day-by-day', strategy_step2_sub: 'Click any cell to cycle through BTC / GMT / TH for that day.',
+                strategy_step2_title_weekly: 'Tune week-by-week', strategy_step2_sub_weekly: 'Click any cell to cycle through BTC / GMT / TH for that week.',
                 strategy_all_btc: 'All BTC', strategy_all_gmt: 'All GMT', strategy_all_th: 'All TH',
                 strategy_prices: 'Price Overrides (optional)',
                 strategy_prices_hint: 'Test scenarios — what if BTC pumps or GMT moves? Leave blank to use current snapshot.',
@@ -4513,6 +4514,7 @@ function renderCalendar(history, chartEl) {
                 strategy_eyebrow: 'Lab · Plan & Projection',
                 strategy_step1_title: 'Pré-remplir le plan', strategy_step1_sub: "Utilise un quick fill ou laisse le smart-fill couvrir tes frais en premier.",
                 strategy_step2_title: 'Ajuster jour par jour', strategy_step2_sub: "Clique sur une cellule pour passer entre BTC / GMT / TH pour ce jour-là.",
+                strategy_step2_title_weekly: 'Ajuster semaine par semaine', strategy_step2_sub_weekly: "Clique sur une cellule pour passer entre BTC / GMT / TH pour cette semaine-là.",
                 strategy_all_btc: 'Tout BTC', strategy_all_gmt: 'Tout GMT', strategy_all_th: 'Tout TH',
                 strategy_prices: 'Prix personnalisés (optionnel)',
                 strategy_prices_hint: 'Teste des scénarios — que se passe-t-il si BTC monte ou si GMT bouge ? Laisse vide pour utiliser les prix actuels.',
