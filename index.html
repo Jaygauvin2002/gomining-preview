@@ -641,8 +641,16 @@
                         </div>
                     </div>
 
-                    <!-- RIGHT COLUMN: Monthly Goal -->
+                    <!-- RIGHT COLUMN: Daily Fees + Breakeven + Monthly Goal -->
                     <div class="dh-col dh-col--scenarios">
+                        <div class="dh-card" id="dash-daily-fees-card">
+                            <div class="dh-card-title" style="text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);font-size:0.78em;margin-bottom:8px;" data-i18n="lbl_daily_fees">Daily Fees GMT</div>
+                            <div id="dash-daily-fees" style="color:var(--red);font-size:1.6em;font-weight:700;font-variant-numeric:tabular-nums;">--</div>
+                        </div>
+                        <div class="dh-card" id="dash-breakeven-card">
+                            <div class="dh-card-title" style="text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);font-size:0.78em;margin-bottom:8px;" data-i18n="lbl_breakeven">Breakeven BTC</div>
+                            <div id="dash-breakeven" style="color:var(--red);font-size:1.6em;font-weight:700;font-variant-numeric:tabular-nums;">--</div>
+                        </div>
                         <div class="dh-card" id="dash-goal-section">
                             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap;">
                                 <h3 class="dh-card-title" style="margin:0;" data-i18n="sec_monthly_goal">Monthly Goal</h3>
@@ -817,12 +825,8 @@
                 </div>
             </div>
 
-            <!-- Quick Stats -->
-            <div class="live-data" id="dash-quick-stats" style="display:none;">
-                <div class="live-card">
-                    <div class="label" data-i18n="lbl_breakeven">Breakeven BTC</div>
-                    <div class="value" id="dash-breakeven" style="color:var(--red);font-size:1.3em;">--</div>
-                </div>
+            <!-- Quick Stats — Breakeven + Daily Fees moved to hero right column -->
+            <div class="live-data" id="dash-quick-stats" style="display:none;grid-template-columns:repeat(2,1fr);">
                 <div class="live-card">
                     <div class="label" data-i18n="lbl_days_next">Days to Next Level</div>
                     <div class="value net" id="dash-days-next" style="font-size:1.3em;">--</div>
@@ -830,10 +834,6 @@
                 <div class="live-card">
                     <div class="label" data-i18n="lbl_roi">Est. Annual ROI</div>
                     <div class="value positive" id="dash-roi" style="font-size:1.3em;">--</div>
-                </div>
-                <div class="live-card">
-                    <div class="label" data-i18n="lbl_daily_fees">Daily Fees GMT</div>
-                    <div class="value" id="dash-daily-fees" style="color:var(--red);font-size:1.3em;">--</div>
                 </div>
             </div>
 
