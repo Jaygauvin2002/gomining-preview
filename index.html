@@ -1348,127 +1348,162 @@
         </div>
 
         <div class="tab-content" id="tab-portfolio">
-            <div class="section" style="margin-bottom:12px;">
-                <h2 style="border:none;margin-bottom:10px;padding:0;" data-i18n="sec_staking">veGMT Lock Rewards</h2>
-                <div class="form-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">
+
+            <!-- HERO: P&L spotlight + supporting stats -->
+            <div class="port-hero">
+                <div class="port-hero-glow"></div>
+                <div class="port-hero-head">
+                    <span class="port-hero-eyebrow" data-i18n="port_eyebrow">Portfolio · Performance</span>
+                    <h1 class="port-hero-title" data-i18n="port_title">Your Portfolio</h1>
+                    <p class="port-hero-sub" data-i18n="port_sub">Track every BTC, GMT, and TH dollar in and out. See P&amp;L, ROI, and the live value of your miner.</p>
+                </div>
+                <div class="port-hero-grid">
+                    <div class="port-stat port-stat--invested">
+                        <div class="port-stat-label" data-i18n="port_total_invested">Total Invested</div>
+                        <div class="port-stat-value" id="port-total-invested">--</div>
+                    </div>
+                    <div class="port-stat port-stat--pnl">
+                        <div class="port-stat-label" data-i18n="port_pnl">Profit / Loss</div>
+                        <div class="port-stat-value" id="port-pnl">--</div>
+                        <div class="port-stat-sub">
+                            <span data-i18n="port_roi_label">ROI</span>
+                            <strong id="port-roi">--</strong>
+                        </div>
+                    </div>
+                    <div class="port-stat port-stat--asset">
+                        <div class="port-stat-label" data-i18n="port_asset_value">Asset Value</div>
+                        <div class="port-stat-value" id="port-asset-value">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Secondary KPIs row -->
+            <div class="port-kpi-row">
+                <div class="port-kpi">
+                    <div class="port-kpi-label" data-i18n="port_cumulative">Cumulative Gains</div>
+                    <div class="port-kpi-value" id="port-cumulative" style="color:var(--green);">--</div>
+                </div>
+                <div class="port-kpi">
+                    <div class="port-kpi-label" data-i18n="port_active_days">Active Days</div>
+                    <div class="port-kpi-value" id="port-days" style="color:var(--accent2);">--</div>
+                </div>
+                <div class="port-kpi">
+                    <div class="port-kpi-label" data-i18n="port_daily_avg">Avg Gain / Day</div>
+                    <div class="port-kpi-value" id="port-daily-avg" style="color:var(--green);">--</div>
+                </div>
+                <div class="port-kpi">
+                    <div class="port-kpi-label" data-i18n="port_payback">Investment Payback</div>
+                    <div class="port-kpi-value" id="port-payback" style="color:var(--accent);">--</div>
+                </div>
+            </div>
+
+            <!-- veGMT Lock + Add Investment in a 2-col layout -->
+            <div class="port-input-row">
+                <div class="port-card port-card--vegmt">
+                    <h3 class="port-card-title">
+                        <span class="port-card-icon">💎</span>
+                        <span data-i18n="sec_staking">veGMT Lock Rewards</span>
+                    </h3>
                     <div class="form-group">
                         <label data-i18n="lbl_staking_weekly">GMT Received / Week (veGMT lock)</label>
                         <input type="number" id="staking-gmt-weekly" value="0" min="0" step="0.1" placeholder="3.68">
                         <span class="hint" data-i18n="hint_staking_weekly">Auto-filled from extension (visit your veGMT lock page)</span>
                     </div>
                 </div>
-            </div>
 
-            <div class="section">
-                <h2 data-i18n="sec_add_invest">Add Investment</h2>
-                <div class="form-grid" style="grid-template-columns:1fr 1fr 1fr 0.6fr 0.8fr 1.2fr auto;margin-bottom:12px;">
-                    <div class="form-group">
-                        <label data-i18n="lbl_date">Date</label>
-                        <input type="date" id="tx-date">
+                <div class="port-card port-card--add">
+                    <h3 class="port-card-title">
+                        <span class="port-card-icon">➕</span>
+                        <span data-i18n="sec_add_invest">Add Investment</span>
+                    </h3>
+                    <div class="port-add-form">
+                        <div class="form-group">
+                            <label data-i18n="lbl_date">Date</label>
+                            <input type="date" id="tx-date">
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="lbl_category">Category</label>
+                            <select id="tx-category">
+                                <option value="nft" data-i18n="cat_nft">⛏ Buy NFT</option>
+                                <option value="upgrade" data-i18n="cat_upgrade">⬆ Upgrade TH</option>
+                                <option value="upgrade-wth" data-i18n="cat_upgrade_wth">⚡ Upgrade W/TH</option>
+                                <option value="lock" data-i18n="cat_lock">🔒 Lock GMT</option>
+                                <option value="staking" data-i18n="cat_staking">💎 Staking veGMT</option>
+                                <option value="other" data-i18n="cat_other">📦 Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="lbl_amount">Amount</label>
+                            <input type="number" id="tx-amount" value="" min="0" step="1" placeholder="500">
+                            <span class="hint" id="tx-preview"></span>
+                        </div>
+                        <div class="form-group">
+                            <label data-i18n="lbl_currency">Currency</label>
+                            <select id="tx-currency" onchange="updateTxPreview()">
+                                <option value="usd">USD $</option>
+                                <option value="gmt">GMT</option>
+                            </select>
+                        </div>
+                        <div class="form-group" id="tx-th-group" style="display:none;">
+                            <label data-i18n="lbl_th_added">TH Added</label>
+                            <input type="number" id="tx-th" value="" min="0" step="1" placeholder="e.g. 13">
+                            <span class="hint" data-i18n="hint_th_added">Auto-updated in the simulator</span>
+                        </div>
+                        <div class="form-group form-group--note">
+                            <label data-i18n="lbl_note">Note</label>
+                            <input type="text" id="tx-note" placeholder="e.g. Upgrade 83→96 TH">
+                        </div>
+                        <button class="port-add-btn" onclick="addTransaction()">
+                            <span data-i18n="btn_add">+ Add</span>
+                        </button>
                     </div>
-                    <div class="form-group">
-                        <label data-i18n="lbl_category">Category</label>
-                        <select id="tx-category">
-                            <option value="nft" data-i18n="cat_nft">⛏ Buy NFT</option>
-                            <option value="upgrade" data-i18n="cat_upgrade">⬆ Upgrade TH</option>
-                            <option value="upgrade-wth" data-i18n="cat_upgrade_wth">⚡ Upgrade W/TH</option>
-                            <option value="lock" data-i18n="cat_lock">🔒 Lock GMT</option>
-                            <option value="staking" data-i18n="cat_staking">💎 Staking veGMT</option>
-                            <option value="other" data-i18n="cat_other">📦 Other</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label data-i18n="lbl_amount">Amount</label>
-                        <input type="number" id="tx-amount" value="" min="0" step="1" placeholder="500">
-                        <span class="hint" id="tx-preview"></span>
-                    </div>
-                    <div class="form-group">
-                        <label data-i18n="lbl_currency">Currency</label>
-                        <select id="tx-currency" onchange="updateTxPreview()">
-                            <option value="usd">USD $</option>
-                            <option value="gmt">GMT</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="tx-th-group" style="display:none;">
-                        <label data-i18n="lbl_th_added">TH Added</label>
-                        <input type="number" id="tx-th" value="" min="0" step="1" placeholder="e.g. 13">
-                        <span class="hint" data-i18n="hint_th_added">Auto-updated in the simulator</span>
-                    </div>
-                    <div class="form-group">
-                        <label data-i18n="lbl_note">Note</label>
-                        <input type="text" id="tx-note" placeholder="e.g. Upgrade 83→96 TH">
-                    </div>
-                    <div class="form-group" style="justify-content:flex-end;">
-                        <button class="btn-calculate" style="margin:0;" onclick="addTransaction()" data-i18n="btn_add">+ Add</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Portfolio KPIs -->
-            <div class="live-data" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-bottom:20px;">
-                <div class="live-card" style="border-bottom:3px solid var(--accent);">
-                    <div class="label" data-i18n="port_total_invested">Total Invested</div>
-                    <div class="value" id="port-total-invested" style="color:var(--red);font-size:1.4em;">--</div>
-                </div>
-                <div class="live-card" style="border-bottom:3px solid var(--green);">
-                    <div class="label" data-i18n="port_cumulative">Cumulative Gains</div>
-                    <div class="value positive" id="port-cumulative" style="font-size:1.4em;">--</div>
-                </div>
-                <div class="live-card" style="border-bottom:3px solid var(--accent2);">
-                    <div class="label" data-i18n="port_pnl">Profit / Loss</div>
-                    <div class="value" id="port-pnl" style="font-size:1.4em;">--</div>
-                </div>
-                <div class="live-card" style="border-bottom:3px solid var(--purple);">
-                    <div class="label" data-i18n="port_roi_label">ROI</div>
-                    <div class="value" id="port-roi" style="font-size:1.4em;">--</div>
                 </div>
             </div>
 
-            <div class="live-data" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-bottom:20px;">
-                <div class="live-card">
-                    <div class="label" data-i18n="port_active_days">Active Days</div>
-                    <div class="value net" id="port-days" style="font-size:1.3em;">--</div>
+            <!-- Breakdown + Projection side-by-side -->
+            <div class="port-split-row">
+                <div class="port-card">
+                    <h3 class="port-card-title">
+                        <span class="port-card-icon">🧩</span>
+                        <span data-i18n="sec_breakdown">Breakdown</span>
+                    </h3>
+                    <div id="port-breakdown"></div>
                 </div>
-                <div class="live-card">
-                    <div class="label" data-i18n="port_daily_avg">Avg Gain / Day</div>
-                    <div class="value positive" id="port-daily-avg" style="font-size:1.3em;">--</div>
-                </div>
-                <div class="live-card">
-                    <div class="label" data-i18n="port_payback">Investment Payback</div>
-                    <div class="value" id="port-payback" style="font-size:1.3em;">--</div>
-                </div>
-                <div class="live-card">
-                    <div class="label"><span class="has-tooltip" data-tooltip="Current value of your miner + locked GMT on the market" data-i18n="port_asset_value">Asset Value</span></div>
-                    <div class="value" id="port-asset-value" style="color:var(--accent);font-size:1.3em;">--</div>
+                <div class="port-card">
+                    <h3 class="port-card-title">
+                        <span class="port-card-icon">📈</span>
+                        <span data-i18n="sec_projection">Projection</span>
+                    </h3>
+                    <div id="port-projection"></div>
                 </div>
             </div>
 
-            <!-- Breakdown par catégorie -->
-            <div class="section">
-                <h2 data-i18n="sec_breakdown">Breakdown</h2>
-                <div id="port-breakdown"></div>
-            </div>
-
-            <!-- Projection -->
-            <div class="section">
-                <h2 data-i18n="sec_projection">Projection</h2>
-                <div id="port-projection"></div>
-            </div>
-
-            <!-- Transaction History -->
-            <div class="section">
-                <h2 data-i18n="sec_transactions">Transaction History</h2>
-                <div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;">
-                    <select id="tx-filter-cat" onchange="updatePortfolio()" style="background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:var(--radius-sm);font-size:0.85em;">
-                        <option value="all" data-i18n="filter_all">All categories</option>
-                        <option value="nft">⛏ NFT</option>
-                        <option value="upgrade">⬆ Upgrade TH</option>
-                        <option value="upgrade-wth">⚡ Upgrade W/TH</option>
-                        <option value="lock">🔒 Lock GMT</option>
-                        <option value="staking">💎 Staking</option>
-                        <option value="other">📦 Other</option>
+            <!-- Transaction History with filter chips -->
+            <div class="port-card port-tx-card">
+                <h3 class="port-card-title">
+                    <span class="port-card-icon">📒</span>
+                    <span data-i18n="sec_transactions">Transaction History</span>
+                </h3>
+                <div class="port-tx-filters">
+                    <div class="port-tx-chips">
+                        <button type="button" class="port-tx-chip active" data-cat="all" onclick="setPortTxCat(this)" data-i18n="filter_all">All</button>
+                        <button type="button" class="port-tx-chip" data-cat="nft" onclick="setPortTxCat(this)">⛏ NFT</button>
+                        <button type="button" class="port-tx-chip" data-cat="upgrade" onclick="setPortTxCat(this)">⬆ Upgrade TH</button>
+                        <button type="button" class="port-tx-chip" data-cat="upgrade-wth" onclick="setPortTxCat(this)">⚡ W/TH</button>
+                        <button type="button" class="port-tx-chip" data-cat="lock" onclick="setPortTxCat(this)">🔒 Lock GMT</button>
+                        <button type="button" class="port-tx-chip" data-cat="staking" onclick="setPortTxCat(this)">💎 Staking</button>
+                        <button type="button" class="port-tx-chip" data-cat="other" onclick="setPortTxCat(this)">📦 Other</button>
+                    </div>
+                    <input type="text" id="tx-filter-search" onkeyup="updatePortfolio()" placeholder="Search notes..." class="port-tx-search">
+                    <select id="tx-filter-cat" onchange="updatePortfolio()" style="display:none;">
+                        <option value="all">All categories</option>
+                        <option value="nft">NFT</option>
+                        <option value="upgrade">Upgrade TH</option>
+                        <option value="upgrade-wth">Upgrade W/TH</option>
+                        <option value="lock">Lock GMT</option>
+                        <option value="staking">Staking</option>
+                        <option value="other">Other</option>
                     </select>
-                    <input type="text" id="tx-filter-search" onkeyup="updatePortfolio()" placeholder="Search notes..." style="background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:6px 10px;border-radius:var(--radius-sm);font-size:0.85em;flex:1;min-width:150px;">
                 </div>
                 <div id="port-transactions" style="overflow-x:auto;"></div>
             </div>
@@ -4346,6 +4381,8 @@ function renderCalendar(history, chartEl) {
                 sec_performance: 'Performance Tracking', sec_multisim: 'Multi-Scenario Simulation',
                 sec_mining_params: 'NFT Miner Parameters', sec_results: 'Results',
                 sec_btc_scenarios: 'Profits by Bitcoin Price', sec_strategy_map: 'Strategy Map — BTC × GMT',
+                port_eyebrow: 'Portfolio · Performance', port_title: 'Your Portfolio',
+                port_sub: 'Track every BTC, GMT, and TH dollar in and out. See P&L, ROI, and the live value of your miner.',
                 scn_at_current: 'At current price', scn_bear: 'Bear case', scn_bull: 'Bull case',
                 scn_chart_title: 'Net Profit / Day by BTC Price',
                 scn_chart_desc: "Curve based on your current NFT parameters. Orange marker = today's BTC price. Red marker = breakeven.",
@@ -4576,6 +4613,8 @@ function renderCalendar(history, chartEl) {
                 sec_performance: 'Suivi de Performance', sec_multisim: 'Simulation Multi-Scénarios',
                 sec_mining_params: 'Paramètres NFT Mineur', sec_results: 'Résultats',
                 sec_btc_scenarios: 'Profits selon le prix du Bitcoin', sec_strategy_map: 'Carte Stratégique — BTC × GMT',
+                port_eyebrow: 'Portfolio · Performance', port_title: 'Ton Portfolio',
+                port_sub: 'Suis chaque dollar BTC, GMT et TH entrant et sortant. Vois ton P&L, ROI et la valeur live de ton mineur.',
                 scn_at_current: 'Au prix actuel', scn_bear: 'Bear case', scn_bull: 'Bull case',
                 scn_chart_title: 'Profit Net / jour selon le prix BTC',
                 scn_chart_desc: "Courbe basée sur tes paramètres NFT. Marqueur orange = prix BTC d'aujourd'hui. Marqueur rouge = breakeven.",
@@ -4978,6 +5017,18 @@ function renderCalendar(history, chartEl) {
             }
         }
         document.getElementById('tx-amount')?.addEventListener('input', updateTxPreview);
+
+        // Transaction history filter chips — proxy through the hidden <select>
+        // so the existing updatePortfolio() logic works unchanged.
+        window.setPortTxCat = function (btn) {
+            document.querySelectorAll('.port-tx-chip').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            const sel = document.getElementById('tx-filter-cat');
+            if (sel) {
+                sel.value = btn.dataset.cat;
+                if (typeof updatePortfolio === 'function') updatePortfolio();
+            }
+        };
 
         function addTransaction() {
             const date = document.getElementById('tx-date').value;
