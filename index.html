@@ -643,38 +643,8 @@
                         </div>
                     </div>
 
-                    <!-- RIGHT COLUMN: Saved Scenarios + Quick Action Preset + Load -->
+                    <!-- RIGHT COLUMN: Monthly Goal -->
                     <div class="dh-col dh-col--scenarios">
-                        <div class="dh-card dh-scenarios-card">
-                            <h3 class="dh-card-title" data-i18n="dh_saved_scenarios">Saved Scenarios</h3>
-                            <button class="dh-scenario-row" onclick="applyDashboardScenario('conservative')" data-scenario="conservative">
-                                <div class="dh-scenario-name" data-i18n="dh_scn_conservative">Conservative Growth</div>
-                                <div class="dh-scenario-meta">BTC: $35k &nbsp;·&nbsp; Diff: 70T &nbsp;·&nbsp; Pwr: 1500 TH/s</div>
-                            </button>
-                            <button class="dh-scenario-row dh-scenario-row--active" onclick="applyDashboardScenario('current')" data-scenario="current">
-                                <div class="dh-scenario-name" data-i18n="dh_scn_current">Current Market</div>
-                                <div class="dh-scenario-meta">BTC: $45k &nbsp;·&nbsp; Diff: 85T &nbsp;·&nbsp; Pwr: 2500 TH/s</div>
-                            </button>
-                            <button class="dh-scenario-row" onclick="applyDashboardScenario('high-risk')" data-scenario="high-risk">
-                                <div class="dh-scenario-name" data-i18n="dh_scn_high_risk">High Risk / Reward</div>
-                                <div class="dh-scenario-meta">BTC: $75k &nbsp;·&nbsp; Diff: 100T &nbsp;·&nbsp; Pwr: 4000 TH/s</div>
-                            </button>
-                        </div>
-
-                        <div class="dh-card dh-presets-card">
-                            <h3 class="dh-card-title" data-i18n="dh_quick_preset">Quick action Preset</h3>
-                            <button class="dh-preset dh-preset--bull" onclick="applyDashboardScenario('bull')">
-                                <div class="dh-preset-name">BULL RUN</div>
-                                <div class="dh-preset-meta">BTC: $80k &nbsp;·&nbsp; Diff: 95T &nbsp;·&nbsp; Pwr: 3000 TH/s</div>
-                            </button>
-                            <button class="dh-preset dh-preset--bear" onclick="applyDashboardScenario('bear')">
-                                <div class="dh-preset-name">BEAR MARKET</div>
-                                <div class="dh-preset-meta">BTC: $25k &nbsp;·&nbsp; Diff: 60T &nbsp;·&nbsp; Pwr: 2000 TH/s</div>
-                            </button>
-                        </div>
-
-                        <button class="dh-load-btn" onclick="switchTab('scenarios')" data-i18n="dh_load_scenario">Load Scenario</button>
-
                         <div class="dh-card" id="dash-goal-section">
                             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap;">
                                 <h3 class="dh-card-title" style="margin:0;" data-i18n="sec_monthly_goal">Monthly Goal</h3>
@@ -5249,27 +5219,7 @@
             }
         };
 
-        // --- Apply scenario preset: switch to the BTC Scenarios tab where
-        //     the user can fine-tune. We don't mutate state here — the
-        //     existing scenarios tab owns that logic. The preset's purpose
-        //     is to give a quick visual pivot into the right context.
-        window.applyDashboardScenario = function (name) {
-            // Highlight the picked row
-            document.querySelectorAll('.dh-scenario-row, .dh-preset').forEach(el => {
-                el.classList.remove('dh-scenario-row--active');
-            });
-            const target = document.querySelector('[data-scenario="' + name + '"]');
-            if (target && target.classList.contains('dh-scenario-row')) {
-                target.classList.add('dh-scenario-row--active');
-            }
-            // Hand off to the BTC Scenarios tab — that's where the
-            // calculation/comparison happens.
-            if (typeof window.switchTab === 'function') {
-                try { window.switchTab('scenarios'); } catch {}
-            }
-        };
-
-        // --- Mirror dashboard values into the hero cards ---
+// --- Mirror dashboard values into the hero cards ---
         // We READ from the existing populated DOM elements (the canonical
         // KPI displays the inline app maintains). This keeps the hero in
         // perfect sync with the rest of the dashboard, and avoids the
