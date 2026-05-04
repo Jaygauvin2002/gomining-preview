@@ -641,7 +641,7 @@
                         </div>
                     </div>
 
-                    <!-- RIGHT COLUMN: Daily Fees + Breakeven + Monthly Goal -->
+                    <!-- RIGHT COLUMN: Daily Fees + Breakeven + Discount/Prepaid/Halving + Monthly Goal -->
                     <div class="dh-col dh-col--scenarios">
                         <div class="dh-card" id="dash-daily-fees-card">
                             <div class="dh-card-title" style="text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);font-size:0.78em;margin-bottom:8px;" data-i18n="lbl_daily_fees">Daily Fees</div>
@@ -650,6 +650,21 @@
                         <div class="dh-card" id="dash-breakeven-card">
                             <div class="dh-card-title" style="text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);font-size:0.78em;margin-bottom:8px;" data-i18n="lbl_breakeven">Breakeven BTC</div>
                             <div id="dash-breakeven" style="color:var(--red);font-size:1.6em;font-weight:700;font-variant-numeric:tabular-nums;">--</div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+                            <div class="dh-card" style="padding:12px;">
+                                <div class="dh-card-title" style="text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);font-size:0.7em;margin-bottom:6px;" data-i18n="kpi_discount">Discount</div>
+                                <div id="dash-discount-total" style="color:var(--green);font-size:1.15em;font-weight:700;font-variant-numeric:tabular-nums;">--</div>
+                                <div style="display:none;" id="dash-gmt-wallet">--</div>
+                            </div>
+                            <div class="dh-card" style="padding:12px;">
+                                <div class="dh-card-title" style="text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);font-size:0.7em;margin-bottom:6px;" data-i18n="kpi_prepaid_days">Prepaid Days</div>
+                                <div id="dash-prepaid-days" style="color:var(--green);font-size:1.15em;font-weight:700;font-variant-numeric:tabular-nums;">--</div>
+                            </div>
+                            <div class="dh-card" style="padding:12px;">
+                                <div class="dh-card-title" style="text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);font-size:0.7em;margin-bottom:6px;" data-i18n="kpi_next_halving">Next Halving</div>
+                                <div id="dash-halving" style="color:var(--accent);font-size:1.15em;font-weight:700;font-variant-numeric:tabular-nums;">--</div>
+                            </div>
                         </div>
                         <div class="dh-card" id="dash-goal-section">
                             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap;">
@@ -735,8 +750,8 @@
                 </div>
             </div>
 
-            <!-- Row 2: 5 Info Cards -->
-            <div class="live-data" style="grid-template-columns:repeat(5,1fr);">
+            <!-- Row 2: GMT price + Pool Reward (Discount/Prepaid/Halving moved to hero right column) -->
+            <div class="live-data" style="grid-template-columns:repeat(2,1fr);">
                 <div class="live-card">
                     <div class="label">GOMINING</div>
                     <div class="value gmt" id="gmt-price">--</div>
@@ -744,20 +759,6 @@
                 <div class="live-card">
                     <div class="label"><span class="has-tooltip" data-tooltip="Satoshis earned per TH/s per day before fees" data-i18n="kpi_pool_reward">Pool Reward</span></div>
                     <div class="value net" id="net-hashrate">--</div>
-                </div>
-                <div class="live-card">
-                    <div class="label"><span class="has-tooltip" data-tooltip="Total discount applied to your maintenance fees (sum of token, streak, VIP, and mining mode)" data-i18n="kpi_discount">Discount</span></div>
-                    <div class="value" id="dash-discount-total" style="color:var(--green);">--</div>
-                    <!-- Kept hidden for backward-compat with code that sets dash-gmt-wallet -->
-                    <div style="display:none;" id="dash-gmt-wallet">--</div>
-                </div>
-                <div class="live-card">
-                    <div class="label"><span class="has-tooltip" data-tooltip="How many days your locked + wallet GMT cover your fees" data-i18n="kpi_prepaid_days">Prepaid Days</span></div>
-                    <div class="value" id="dash-prepaid-days" style="color:var(--green);">--</div>
-                </div>
-                <div class="live-card">
-                    <div class="label"><span class="has-tooltip" data-tooltip="Countdown to next Bitcoin halving (~April 2028)" data-i18n="kpi_next_halving">Next Halving</span></div>
-                    <div class="value" id="dash-halving" style="color:var(--accent);font-size:1.2em;">--</div>
                 </div>
             </div>
             <div style="display:none;" id="net-difficulty">--</div>
