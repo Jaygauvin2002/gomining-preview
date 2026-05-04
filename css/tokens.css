@@ -113,11 +113,6 @@ body {
     background-position: 0 0;
 }
 
-/* Light theme override — softer dots on light bg */
-body.light {
-    --bg-dot-color: rgba(0, 0, 0, 0.045);
-}
-
 /* =============================================================
    Focus ring — consistent across the app, accessible.
    ============================================================= */

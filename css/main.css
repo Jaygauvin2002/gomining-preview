@@ -753,23 +753,6 @@ tr.current td { background: rgba(247, 147, 26, 0.1); }
     font-size: 2em; font-weight: 800; text-align: center; padding: 15px;
 }
 
-/* Light theme */
-body.light {
-    --bg: #f5f6f8;
-    --bg2: #ebedf0;
-    --card-solid: #ffffff;
-    --border: rgba(0, 0, 0, 0.08);
-    --border-hover: rgba(0, 0, 0, 0.15);
-    --text: #1a1a2e;
-    --text-dim: #6b7280;
-}
-body.light .sidebar { background: #ffffff; border-right-color: rgba(0,0,0,0.08); }
-body.light .live-ticker { background: #f5f6f8; }
-body.light .mobile-tab-bar { background: #ffffff; }
-body.light .nav-item:hover { background: rgba(0,0,0,0.03); }
-body.light .form-group input, body.light .form-group select { background: #f5f6f8; }
-body.light .discount-group { background: rgba(63,185,80,0.06); }
-
 /* Tooltips */
 .has-tooltip {
     position: relative; cursor: help;
@@ -782,7 +765,6 @@ body.light .discount-group { background: rgba(63,185,80,0.06); }
     font-size: 0.75em; white-space: nowrap; pointer-events: none;
     opacity: 0; transition: opacity 0.2s; z-index: 50;
 }
-body.light .has-tooltip::after { background: #333; }
 .has-tooltip:hover::after { opacity: 1; }
 
 /* Staggered fade-in animations */

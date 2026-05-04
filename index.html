@@ -413,9 +413,6 @@
                         <button class="tnm-item" onclick="fetchLiveData();document.getElementById('top-nav-menu').classList.remove('open');">
                             <span class="tnm-ico">↻</span> <span data-i18n="refresh">Refresh data</span>
                         </button>
-                        <button class="tnm-item" onclick="toggleTheme();" id="theme-btn">
-                            <span class="tnm-ico">☀</span> <span data-i18n="theme">Theme</span>
-                        </button>
                     </div>
                     <div class="tnm-section tnm-langs">
                         <span class="tnm-section-label" data-i18n="language">Language</span>
@@ -4190,8 +4187,7 @@ function renderCalendar(history, chartEl) {
                 transactions: JSON.parse(localStorage.getItem(TX_KEY) || '[]'),
                 performance: JSON.parse(localStorage.getItem(PERF_KEY) || '[]'),
                 changelog: JSON.parse(localStorage.getItem(CHANGELOG_KEY) || '[]'),
-                dashCache: JSON.parse(localStorage.getItem(DASH_CACHE_KEY) || '{}'),
-                theme: localStorage.getItem('gomining_theme')
+                dashCache: JSON.parse(localStorage.getItem(DASH_CACHE_KEY) || '{}')
             };
             const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -4216,7 +4212,6 @@ function renderCalendar(history, chartEl) {
                     if (data.transactions) localStorage.setItem(TX_KEY, JSON.stringify(data.transactions));
                     if (data.performance) localStorage.setItem(PERF_KEY, JSON.stringify(data.performance));
                     if (data.changelog) localStorage.setItem(CHANGELOG_KEY, JSON.stringify(data.changelog));
-                    if (data.theme) localStorage.setItem('gomining_theme', data.theme);
 
                     alert(t('import_success'));
                     location.reload();
@@ -4850,21 +4845,7 @@ function renderCalendar(history, chartEl) {
         }
 
         // ===== THEME TOGGLE =====
-        function toggleTheme() {
-            document.body.classList.toggle('light');
-            const isLight = document.body.classList.contains('light');
-            localStorage.setItem('gomining_theme', isLight ? 'light' : 'dark');
-            document.getElementById('theme-btn').textContent = isLight ? '🌙' : '☀';
-        }
-
-        function loadTheme() {
-            if (localStorage.getItem('gomining_theme') === 'light') {
-                document.body.classList.add('light');
-                document.getElementById('theme-btn').textContent = '🌙';
-            }
-        }
-
-        // ===== DASHBOARD PERSISTENCE =====
+// ===== DASHBOARD PERSISTENCE =====
         const DASH_CACHE_KEY = 'gomining_dash_cache';
 
         function saveDashCache() {
@@ -5237,7 +5218,6 @@ function renderCalendar(history, chartEl) {
         }
 
 // ===== INIT =====
-        loadTheme();
         loadFeeMode();
         loadSettings();
         loadDashCache(); // After loadSettings so API prices override saved values
