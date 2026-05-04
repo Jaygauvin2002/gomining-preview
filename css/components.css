@@ -594,6 +594,33 @@ tr.current td {
     font-size: var(--fs-xs);
     letter-spacing: var(--ls-snug);
     cursor: help;
+    position: relative;
+}
+.sync-status[data-tip]::after {
+    content: attr(data-tip);
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: rgba(13, 17, 23, 0.96);
+    color: var(--text);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.75em;
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    opacity: 0;
+    transform: translateY(-4px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    pointer-events: none;
+    z-index: 100;
+}
+.sync-status:hover[data-tip]::after {
+    opacity: 1;
+    transform: translateY(0);
 }
 .sync-dot { box-shadow: 0 0 0 3px rgba(255,255,255,0.02); }
 .sync-dot.live {

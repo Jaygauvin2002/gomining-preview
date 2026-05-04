@@ -3617,17 +3617,21 @@ function renderCalendar(history, chartEl) {
             }
 
             // Hover tooltip with the absolute last-sync time
+            // Uses both `title` (native fallback) and `data-tip` (CSS custom tooltip)
             if (status) {
+                let tipText;
                 if (lastSync) {
                     const d = new Date(lastSync);
                     const time = d.toLocaleTimeString(currentLang === 'fr' ? 'fr-CA' : 'en-US',
                         { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                     const date = d.toLocaleDateString(currentLang === 'fr' ? 'fr-CA' : 'en-US',
                         { day: 'numeric', month: 'short' });
-                    status.title = (t('sync_last') || 'Last sync') + ': ' + date + ' · ' + time;
+                    tipText = (t('sync_last') || 'Last sync') + ': ' + date + ' · ' + time;
                 } else {
-                    status.title = t('sync_none') || 'No sync yet';
+                    tipText = t('sync_none') || 'No sync yet';
                 }
+                status.title = tipText;
+                status.setAttribute('data-tip', tipText);
             }
         }
 
