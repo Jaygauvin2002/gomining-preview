@@ -645,7 +645,7 @@
                     <div class="dh-col dh-col--scenarios">
                         <div class="dh-card" id="dash-daily-fees-card">
                             <div class="dh-card-title" style="text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);font-size:0.78em;margin-bottom:8px;" data-i18n="lbl_daily_fees">Daily Fees</div>
-                            <div id="dash-daily-fees" style="color:var(--red);font-size:1.6em;font-weight:700;font-variant-numeric:tabular-nums;">--</div>
+                            <div id="dash-daily-fees" style="color:var(--purple);font-size:1.6em;font-weight:700;font-variant-numeric:tabular-nums;">--</div>
                         </div>
                         <div class="dh-card" id="dash-breakeven-card">
                             <div class="dh-card-title" style="text-transform:uppercase;letter-spacing:0.08em;color:var(--text-dim);font-size:0.78em;margin-bottom:8px;" data-i18n="lbl_breakeven">Breakeven BTC</div>
@@ -2458,10 +2458,15 @@
             const investValue = hashrate * (parseFloat(document.getElementById('cost-per-th-upgrade').value) || 12.34);
             const annualNet = r.netUsd * 365;
             document.getElementById('dash-roi').textContent = investValue > 0 ? (annualNet / investValue * 100).toFixed(1) + '%' : '--';
-            // Daily fees — display unit follows the fee-mode toggle
-            document.getElementById('dash-daily-fees').textContent = state.feeMode === 'btc'
-                ? r.feesBtc.toFixed(8) + ' BTC'
-                : r.feesGmt.toFixed(2) + ' GMT';
+            // Daily fees — display unit + color follow the fee-mode toggle
+            const feesEl = document.getElementById('dash-daily-fees');
+            if (state.feeMode === 'btc') {
+                feesEl.textContent = r.feesBtc.toFixed(8) + ' BTC';
+                feesEl.style.color = 'var(--accent)';
+            } else {
+                feesEl.textContent = r.feesGmt.toFixed(2) + ' GMT';
+                feesEl.style.color = 'var(--purple)';
+            }
 
             // === Show calendar on dashboard if we have history ===
             if (state.rewardHistory?.length > 0) {
