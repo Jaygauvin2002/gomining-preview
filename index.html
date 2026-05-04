@@ -946,8 +946,9 @@
                 <p style="color:var(--text-dim);font-size:0.9em;margin-bottom:15px;" data-i18n="scn_chart_desc">
                     Curve based on your current NFT parameters. Orange marker = today's BTC price. Red marker = breakeven.
                 </p>
-                <div style="position:relative;height:320px;">
+                <div id="scenario-chart-wrap" style="position:relative;height:320px;">
                     <canvas id="scenario-chart" class="chart-canvas" style="width:100%;height:100%;"></canvas>
+                    <div id="scenario-chart-tooltip" class="scn-tooltip" style="display:none;"></div>
                 </div>
                 <div class="scn-legend">
                     <span><span class="scn-dot scn-dot--curve"></span> <span data-i18n="scn_legend_curve">Net profit</span></span>
@@ -2070,7 +2071,10 @@
         };
 
         // === Profit-curve chart ===
-        function drawScenarioChart() {
+        // Geometry is cached on `_scnChart` so the hover handler can
+        // convert mouse X → BTC price without recomputing.
+        const _scnChart = { ready: false };
+        function drawScenarioChart(hoverBtc) {
             const canvas = document.getElementById('scenario-chart');
             const c = state.lastCalc;
             if (!canvas || !c) return;
@@ -2102,6 +2106,15 @@
             const xScale = b => pad.left + ((b - minBtc) / (maxBtc - minBtc)) * cw;
             const yScale = n => pad.top + ch - ((n - minNet) / (maxNet - minNet)) * ch;
             const yZero  = yScale(0);
+
+            // Cache for hover handler
+            _scnChart.ready = true;
+            _scnChart.minBtc = minBtc;
+            _scnChart.maxBtc = maxBtc;
+            _scnChart.pad = pad;
+            _scnChart.cw = cw;
+            _scnChart.h = h;
+            _scnChart.w = w;
 
             // Grid
             ctx.strokeStyle = 'rgba(255,255,255,0.05)'; ctx.lineWidth = 1;
@@ -2201,7 +2214,71 @@
                 ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.font = '10px ui-monospace, Menlo, monospace';
                 ctx.fillText('$' + (btcP / 1000) + 'k', x - 12, y - 9);
             });
+
+            // Hover marker (drawn last so it sits on top of everything)
+            if (hoverBtc != null && hoverBtc >= minBtc && hoverBtc <= maxBtc) {
+                const r = calcDailyReward(c.hashrate, c.efficiency, c.elecCost, c.discount, hoverBtc, c.satPerTH);
+                if (r) {
+                    const x = xScale(hoverBtc), y = yScale(r.netUsd);
+                    ctx.strokeStyle = 'rgba(255,255,255,0.35)'; ctx.lineWidth = 1; ctx.setLineDash([3, 3]);
+                    ctx.beginPath(); ctx.moveTo(x, pad.top); ctx.lineTo(x, h - pad.bottom); ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI * 2); ctx.fill();
+                    ctx.fillStyle = '#0d1117';
+                    ctx.beginPath(); ctx.arc(x, y, 2, 0, Math.PI * 2); ctx.fill();
+                }
+            }
         }
+
+        // Wire mouse hover on the canvas (one-time setup, idempotent)
+        (function wireScenarioChartHover() {
+            const wrap = document.getElementById('scenario-chart-wrap');
+            const canvas = document.getElementById('scenario-chart');
+            const tip = document.getElementById('scenario-chart-tooltip');
+            if (!wrap || !canvas || !tip) return;
+            if (canvas.dataset.hoverWired === '1') return;
+            canvas.dataset.hoverWired = '1';
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (!_scnChart.ready) return;
+                const c = state.lastCalc;
+                if (!c) return;
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                if (x < _scnChart.pad.left || x > _scnChart.w - _scnChart.pad.right) {
+                    tip.style.display = 'none';
+                    drawScenarioChart();
+                    return;
+                }
+                const t = (x - _scnChart.pad.left) / _scnChart.cw;
+                const btcP = _scnChart.minBtc + (_scnChart.maxBtc - _scnChart.minBtc) * t;
+                const rew = calcDailyReward(c.hashrate, c.efficiency, c.elecCost, c.discount, btcP, c.satPerTH);
+                if (!rew) return;
+                drawScenarioChart(btcP);
+                const netCls = rew.netUsd >= 0 ? 'pos' : 'neg';
+                tip.innerHTML = `
+                    <div class="scn-tip-price">${formatUSD(btcP)}</div>
+                    <div class="scn-tip-row"><span>Net/day</span><strong class="${netCls}">${formatUSD(rew.netUsd)}</strong></div>
+                    <div class="scn-tip-row"><span>Net/month</span><strong class="${netCls}">${formatUSD(rew.netUsd * 30)}</strong></div>
+                    <div class="scn-tip-row"><span>Net/year</span><strong class="${netCls}">${formatUSD(rew.netUsd * 365)}</strong></div>
+                    <div class="scn-tip-row"><span>Gross/day</span><strong>${formatUSD(rew.grossUsd)}</strong></div>
+                    <div class="scn-tip-row"><span>Fees/day</span><strong class="neg">-${formatUSD(rew.feesUsd)}</strong></div>
+                `;
+                tip.style.display = 'block';
+                // Position the tooltip near the cursor, clamped inside the wrap
+                const wrapRect = wrap.getBoundingClientRect();
+                const tipW = tip.offsetWidth;
+                let left = x + 14;
+                if (left + tipW > wrapRect.width - 6) left = x - tipW - 14;
+                tip.style.left = left + 'px';
+                tip.style.top  = (e.clientY - rect.top - 10) + 'px';
+            });
+            canvas.addEventListener('mouseleave', () => {
+                tip.style.display = 'none';
+                drawScenarioChart();
+            });
+        })();
 
         // === Side-by-side compare ===
         function updateCompareScenarios() {

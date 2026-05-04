@@ -1786,6 +1786,43 @@ body.has-live-footer .main-content { padding-bottom: 64px; }
 .scn-cmp-diff-value.pos, .scn-cmp-diff-pct.pos { color: var(--green); }
 .scn-cmp-diff-value.neg, .scn-cmp-diff-pct.neg { color: var(--red); }
 
+/* Hover tooltip on the profit-curve chart */
+#scenario-chart { cursor: crosshair; }
+.scn-tooltip {
+    position: absolute;
+    background: rgba(13, 17, 23, 0.96);
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 10px 12px;
+    font-size: 0.78em;
+    color: var(--text);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    pointer-events: none;
+    z-index: 5;
+    min-width: 160px;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+}
+.scn-tip-price {
+    font-size: 1.05em;
+    font-weight: 800;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 6px;
+    border-bottom: 1px solid var(--border-soft);
+    padding-bottom: 4px;
+}
+.scn-tip-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    line-height: 1.4;
+}
+.scn-tip-row span { color: var(--text-dim); }
+.scn-tip-row strong { font-weight: 700; font-variant-numeric: tabular-nums; }
+.scn-tip-row strong.pos { color: var(--green); }
+.scn-tip-row strong.neg { color: var(--red); }
+
 @media (max-width: 880px) {
     .scn-hero { grid-template-columns: 1fr; }
     .scn-compare-cards { grid-template-columns: 1fr; }
