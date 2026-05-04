@@ -808,41 +808,6 @@
 
             </div><!-- /#dashboard-details (toggle only collapses the KPI rows + manual-entry above) -->
 
-            <!-- TH Progress -->
-            <div class="section" id="dash-th-progress" style="display:none;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                    <h2 style="margin:0;border:none;padding:0;" data-i18n="sec_th_progress">TH Progress</h2>
-                    <span id="dash-th-label" style="font-size:0.85em;color:var(--text-dim);"></span>
-                </div>
-                <div style="background:var(--bg2);border-radius:8px;height:28px;overflow:hidden;position:relative;">
-                    <div id="dash-th-bar" style="height:100%;border-radius:8px;background:linear-gradient(90deg,var(--accent),var(--green));transition:width 0.8s ease;position:relative;">
-                        <span id="dash-th-pct" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:0.75em;font-weight:700;color:#000;"></span>
-                    </div>
-                </div>
-                <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:0.75em;color:var(--text-dim);">
-                    <span id="dash-th-current"></span>
-                    <span id="dash-th-next"></span>
-                </div>
-            </div>
-
-            <!-- Quick Stats — Breakeven + Daily Fees moved to hero right column -->
-            <div class="live-data" id="dash-quick-stats" style="display:none;grid-template-columns:repeat(2,1fr);">
-                <div class="live-card">
-                    <div class="label" data-i18n="lbl_days_next">Days to Next Level</div>
-                    <div class="value net" id="dash-days-next" style="font-size:1.3em;">--</div>
-                </div>
-                <div class="live-card">
-                    <div class="label" data-i18n="lbl_roi">Est. Annual ROI</div>
-                    <div class="value positive" id="dash-roi" style="font-size:1.3em;">--</div>
-                </div>
-            </div>
-
-            <!-- What-if Upgrade -->
-            <div class="section" id="dash-whatif" style="display:none;">
-                <h2 data-i18n="sec_whatif">What If I Upgrade?</h2>
-                <div id="dash-whatif-content"></div>
-            </div>
-
 
             <!-- Reward Calendar moved into the hero (same IDs preserved
                  there so the inline app keeps rendering into them). -->
@@ -2429,35 +2394,16 @@
                 halvingEl.textContent = years > 0 ? `${years}y ${days}d` : `${days}d`;
             }
 
-            // === TH Progress Bar ===
-            const nextTH2 = getNextLevelTH(hashrate);
-            const currentLevel2 = getCurrentLevel(hashrate);
-            if (nextTH2) {
-                document.getElementById('dash-th-progress').style.display = 'block';
-                const prevLevel = currentLevel2 > 0 ? POWER_LEVELS[currentLevel2] : 0;
-                const progress = (hashrate - prevLevel) / (nextTH2 - prevLevel) * 100;
-                document.getElementById('dash-th-bar').style.width = Math.min(progress, 100) + '%';
-                document.getElementById('dash-th-pct').textContent = Math.round(progress) + '%';
-                document.getElementById('dash-th-current').textContent = hashrate + ' TH (Lv.' + currentLevel2 + ')';
-                document.getElementById('dash-th-next').textContent = nextTH2 + ' TH (Lv.' + (currentLevel2 + 1) + ')';
-                const daysToNext = calcDaysToTarget(nextTH2);
-                document.getElementById('dash-th-label').textContent = daysToNext ? daysToNext.days + ' ' + t('days_remaining') : '';
-            }
-
-            // === Quick Stats ===
-            document.getElementById('dash-quick-stats').style.display = 'grid';
-            // Breakeven
+            // === Hero right column: Breakeven + Daily Fees ===
             const feesUsdPerDay = r.feesUsd;
             const grossBtcPerDay = r.grossBtc;
             const breakevenBtc = grossBtcPerDay > 0 ? feesUsdPerDay / grossBtcPerDay : 0;
             document.getElementById('dash-breakeven').textContent = formatUSD(breakevenBtc);
-            // Days to next level
-            const dtn = calcDaysToTarget(nextTH2 || hashrate + 10);
-            document.getElementById('dash-days-next').textContent = dtn ? dtn.days + 'j' : 'N/A';
-            // ROI
+            // Annual ROI — feeds the Profit Card "ROI Period" stat
             const investValue = hashrate * (parseFloat(document.getElementById('cost-per-th-upgrade').value) || 12.34);
             const annualNet = r.netUsd * 365;
-            document.getElementById('dash-roi').textContent = investValue > 0 ? (annualNet / investValue * 100).toFixed(1) + '%' : '--';
+            const roiPeriodEl = document.getElementById('dh-roi-period');
+            if (roiPeriodEl) roiPeriodEl.textContent = investValue > 0 ? (annualNet / investValue * 100).toFixed(1) + '%' : '—';
             // Daily fees — display unit + color follow the fee-mode toggle
             const feesEl = document.getElementById('dash-daily-fees');
             if (state.feeMode === 'btc') {
@@ -2475,7 +2421,6 @@
             }
 
             // Update other dashboard sections
-            updateWhatIfUpgrade();
             updateMonthlyGoal();
             checkPriceAlerts();
             trackParamChanges();
@@ -4046,7 +3991,7 @@
                 kpi_pool_reward: 'Pool Reward', kpi_gmt_wallet: 'GMT Wallet', kpi_prepaid_days: 'Prepaid Days', kpi_next_halving: 'Next Halving',
                 kpi_wallet: 'Wallet', kpi_discount: 'Discount',
                 // Section titles
-                sec_th_progress: 'TH Progress', sec_monthly_goal: 'Monthly Goal', sec_whatif: 'What If I Upgrade?',
+                sec_monthly_goal: 'Monthly Goal',
                 sec_reward_history: 'Reward History', sec_price_alerts: 'Price Alerts', sec_portfolio: 'My Portfolio',
                 sec_add_invest: 'Add Investment', sec_staking: 'veGMT Lock Rewards', sec_breakdown: 'Breakdown',
                 sec_projection: 'Projection', sec_transactions: 'Transaction History',
@@ -4122,7 +4067,7 @@
                 port_active_days: 'Active Days', port_daily_avg: 'Avg Gain / Day',
                 port_payback: 'Investment Payback', port_asset_value: 'Asset Value', port_paid_back: 'Paid Back!',
                 // Labels
-                lbl_breakeven: 'Breakeven BTC', lbl_days_next: 'Days to Next Level', lbl_roi: 'Est. Annual ROI', lbl_daily_fees: 'Daily Fees',
+                lbl_breakeven: 'Breakeven BTC', lbl_daily_fees: 'Daily Fees',
                 lbl_objective: 'Objective $', lbl_today_label: 'today',
                 alerts_desc: 'Set price thresholds and get notified when they are triggered.',
                 mob_scenarios: 'Scenarios',
@@ -4160,7 +4105,7 @@
                 miner_info: 'Miner Info', miner_current_level: 'Current Level', miner_next_level: 'Next Level',
                 miner_needed: 'needed', miner_upgrade_cost: 'Direct Upgrade Cost',
                 dash_gross: 'Gross', dash_fees: 'Fees', dash_next: 'Next',
-                days_remaining: 'days remaining', days: 'days', months: 'months', years: 'years', d_suffix: 'd', m_suffix: 'mo', and: 'and',
+                days: 'days', months: 'months', years: 'years', d_suffix: 'd', m_suffix: 'mo', and: 'and',
                 th_already_reached: 'Objective already reached!', th_unreachable: 'Not reachable under current conditions',
                 strat_buy_nft: 'Buy a New NFT', strat_upgrade_nft: 'Upgrade an Existing NFT', strat_lock_gmt: 'Lock GMT (veGOMINING)',
                 strat_th_obtained: 'TH/s Obtained', strat_th_added: 'TH/s Added',
@@ -4201,7 +4146,6 @@
                 tx_fill_date_amount: 'Fill in the date and amount.', tx_gmt_unavailable: 'GMT price unavailable. Refresh data.',
                 tx_no_transactions: 'No transactions. Add your first investment above.',
                 tx_category: 'Category', tx_delete_confirm: 'Delete this transaction?',
-                whatif_upgrade_to: 'Upgrade to', whatif_cost: 'Cost', whatif_extra_gain: 'Extra Gain/Day', whatif_payback: 'Payback In',
                 proj_3months: '3 months', proj_6months: '6 months', proj_1year: '1 year', proj_annualized_roi: 'Annualized ROI'
             },
             fr: {
@@ -4269,7 +4213,7 @@
                 kpi_pool_reward: 'Pool Reward', kpi_gmt_wallet: 'GMT Wallet', kpi_prepaid_days: 'Jours prépayés', kpi_next_halving: 'Prochain Halving',
                 kpi_wallet: 'Portefeuille', kpi_discount: 'Discount',
                 // Section titles
-                sec_th_progress: 'Progression TH', sec_monthly_goal: 'Objectif Mensuel', sec_whatif: "Et si j'upgrade ?",
+                sec_monthly_goal: 'Objectif Mensuel',
                 sec_reward_history: 'Historique des Rewards', sec_price_alerts: 'Alertes de Prix', sec_portfolio: 'Mon Portfolio',
                 sec_add_invest: 'Ajouter un investissement', sec_staking: 'Revenus veGMT Lock', sec_breakdown: 'Répartition',
                 sec_projection: 'Projection', sec_transactions: 'Historique des Transactions',
@@ -4346,7 +4290,7 @@
                 port_active_days: 'Jours actifs', port_daily_avg: 'Gain moyen / jour',
                 port_payback: 'Retour investissement', port_asset_value: 'Valeur actifs', port_paid_back: 'Remboursé !',
                 // Labels
-                lbl_breakeven: 'Breakeven BTC', lbl_days_next: 'Jours prochain level', lbl_roi: 'ROI annuel estimé', lbl_daily_fees: 'Frais quotidiens',
+                lbl_breakeven: 'Breakeven BTC', lbl_daily_fees: 'Frais quotidiens',
                 lbl_objective: 'Objectif $', lbl_today_label: "aujourd'hui",
                 alerts_desc: "Configurez des seuils de prix et recevez une notification quand ils sont dépassés.",
                 mob_scenarios: 'Scénarios',
@@ -4384,7 +4328,7 @@
                 miner_info: 'Info Mineur', miner_current_level: 'Niveau actuel', miner_next_level: 'Prochain palier',
                 miner_needed: 'nécessaires', miner_upgrade_cost: 'Coût upgrade direct',
                 dash_gross: 'Brut', dash_fees: 'Frais', dash_next: 'Prochain',
-                days_remaining: 'jours restants', days: 'jours', months: 'mois', years: 'ans', d_suffix: 'j', m_suffix: 'm', and: 'et',
+                days: 'jours', months: 'mois', years: 'ans', d_suffix: 'j', m_suffix: 'm', and: 'et',
                 th_already_reached: 'Objectif déjà atteint !', th_unreachable: 'Non atteignable aux conditions actuelles',
                 strat_buy_nft: 'Acheter un nouveau NFT', strat_upgrade_nft: 'Upgrader un NFT existant', strat_lock_gmt: 'Lock GMT (veGOMINING)',
                 strat_th_obtained: 'TH/s obtenus', strat_th_added: 'TH/s ajoutés',
@@ -4425,7 +4369,6 @@
                 tx_fill_date_amount: 'Remplis la date et le montant.', tx_gmt_unavailable: 'Prix GMT non disponible. Rafraîchis les données.',
                 tx_no_transactions: 'Aucune transaction. Ajoute ton premier investissement ci-dessus.',
                 tx_category: 'Catégorie', tx_delete_confirm: 'Supprimer cette transaction ?',
-                whatif_upgrade_to: 'Upgrade vers', whatif_cost: 'Coût', whatif_extra_gain: 'Gain supplémentaire/jour', whatif_payback: 'Rentabilisé en',
                 proj_3months: '3 mois', proj_6months: '6 mois', proj_1year: '1 an', proj_annualized_roi: 'ROI annualisé'
             }
         };
@@ -4528,7 +4471,7 @@
             const ids = ['dash-today', 'dash-month', 'dash-miner', 'dash-strategy',
                          'btc-price', 'gmt-price', 'net-hashrate',
                          'dash-profit-day', 'dash-gmt-wallet', 'dash-prepaid-days', 'dash-halving',
-                         'dash-breakeven', 'dash-days-next', 'dash-roi', 'dash-daily-fees'];
+                         'dash-breakeven', 'dash-daily-fees'];
             const cache = {};
             ids.forEach(id => {
                 const el = document.getElementById(id);
@@ -4881,51 +4824,7 @@
             document.getElementById('port-transactions').innerHTML = tHtml;
         }
 
-        // ===== WHAT-IF UPGRADE =====
-        function updateWhatIfUpgrade() {
-            if (!state.lastCalc || !state.btcPrice) return;
-            const c = state.lastCalc;
-            const currentTH = c.hashrate;
-            const nextLevel = getNextLevelTH(currentTH);
-            if (!nextLevel) return;
-
-            const thNeeded = nextLevel - currentTH;
-            const costPerTH = parseFloat(document.getElementById('reinv-cost-per-th').value) || 12.34;
-            const upgradeCost = thNeeded * costPerTH;
-
-            const currentR = calcDailyReward(currentTH, c.efficiency, c.elecCost, c.discount, state.btcPrice, c.satPerTH);
-            const upgradeR = calcDailyReward(nextLevel, c.efficiency, c.elecCost, c.discount, state.btcPrice, c.satPerTH);
-
-            if (!currentR || !upgradeR) return;
-
-            const dailyDiff = upgradeR.netUsd - currentR.netUsd;
-            const paybackDays = dailyDiff > 0 ? Math.ceil(upgradeCost / dailyDiff) : Infinity;
-
-            document.getElementById('dash-whatif').style.display = 'block';
-            document.getElementById('dash-whatif-content').innerHTML = `
-                <div class="live-data" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr));">
-                    <div class="live-card">
-                        <div class="label">${t('whatif_upgrade_to')}</div>
-                        <div class="value net" style="font-size:1.3em;">${nextLevel} TH</div>
-                        <div style="font-size:0.72em;color:var(--text-dim);">+${thNeeded} TH</div>
-                    </div>
-                    <div class="live-card">
-                        <div class="label">${t('whatif_cost')}</div>
-                        <div class="value" style="color:var(--red);font-size:1.3em;">${formatUSD(upgradeCost)}</div>
-                    </div>
-                    <div class="live-card">
-                        <div class="label">${t('whatif_extra_gain')}</div>
-                        <div class="value positive" style="font-size:1.3em;">+${formatUSD(dailyDiff)}</div>
-                    </div>
-                    <div class="live-card">
-                        <div class="label">${t('whatif_payback')}</div>
-                        <div class="value net" style="font-size:1.3em;">${paybackDays < 9999 ? paybackDays + t('d_suffix') : 'N/A'}</div>
-                    </div>
-                </div>
-            `;
-        }
-
-        // ===== INIT =====
+// ===== INIT =====
         loadTheme();
         loadFeeMode();
         loadSettings();
@@ -5510,13 +5409,7 @@
                 $('dh-daily-payout').textContent = dailyText;
             }
 
-            // ROI Period — pull from estimated annual ROI %
-            const roiText = readDom('dash-roi');
-            if (roiText && $('dh-roi-period')) {
-                $('dh-roi-period').textContent = roiText;
-            }
-
-            // Wallet — mirrors #dash-wallet (whose currency is owned by
+// Wallet — mirrors #dash-wallet (whose currency is owned by
             // the legacy setWalletMode that the hero toggle delegates to)
             const walletText = readDom('dash-wallet');
             if (walletText) {
